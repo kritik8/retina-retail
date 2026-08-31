@@ -30,7 +30,7 @@ retina-retail/
 
 ### Prerequisites
 
-- **Node.js**: `20.x` (LTS recommended, see `.nvmrc`)
+- **Node.js**: `22.x` (LTS recommended, see `.nvmrc`)
 - **npm**: `10.x` or later
 
 ### Getting Started
