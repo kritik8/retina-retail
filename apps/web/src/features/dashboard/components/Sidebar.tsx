@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
+  Layers,
   Users,
   Package,
   Clock,
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 export const navItems = [
   { path: '/dashboard/overview', label: 'Overview', icon: LayoutDashboard },
+  { path: '/dashboard/store-map', label: 'Store Digital Twin', icon: Layers },
   { path: '/dashboard/shopper-analytics', label: 'Shopper Analytics', icon: Users },
   { path: '/dashboard/inventory', label: 'Inventory', icon: Package },
   { path: '/dashboard/queue-intelligence', label: 'Queue Intelligence', icon: Clock },

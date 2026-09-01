@@ -8,6 +8,7 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { OnboardingPage } from '@/features/onboarding/OnboardingPage';
 import { DashboardLayout } from '@/features/dashboard/DashboardLayout';
 import { OverviewPage } from '@/features/dashboard/overview/OverviewPage';
+import { StoreMapPage } from '@/features/dashboard/store-map/StoreMapPage';
 import { ShopperAnalyticsPage } from '@/features/dashboard/shopper-analytics/ShopperAnalyticsPage';
 import { InventoryPage } from '@/features/dashboard/inventory/InventoryPage';
 import { QueueIntelligencePage } from '@/features/dashboard/queue-intelligence/QueueIntelligencePage';
@@ -45,6 +46,7 @@ export default function App() {
               >
                 <Route index element={<Navigate to="/dashboard/overview" replace />} />
                 <Route path="overview" element={<OverviewPage />} />
+                <Route path="store-map" element={<StoreMapPage />} />
                 <Route path="shopper-analytics" element={<ShopperAnalyticsPage />} />
                 <Route path="inventory" element={<InventoryPage />} />
                 <Route path="queue-intelligence" element={<QueueIntelligencePage />} />

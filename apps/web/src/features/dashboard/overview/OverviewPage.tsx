@@ -7,6 +7,7 @@ import { FootfallChart } from './components/FootfallChart';
 import { QueueBarChart } from './components/QueueBarChart';
 import { InsightFeed } from './components/InsightFeed';
 import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/features/auth/useAuth';
 import {
   Users,
@@ -17,6 +18,7 @@ import {
   AlertTriangle,
   ArrowRight,
   RefreshCw,
+  Layers,
 } from 'lucide-react';
 
 export const OverviewPage: React.FC = () => {
@@ -56,9 +58,20 @@ export const OverviewPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Live Telemetry Active</span>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => navigate('/dashboard/store-map')}
+            variant="primary"
+            size="sm"
+            className="gap-2 bg-indigo-600 hover:bg-indigo-500"
+          >
+            <Layers className="w-4 h-4" />
+            <span>Store Digital Twin</span>
+          </Button>
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Telemetry Active</span>
+          </div>
         </div>
       </div>
 
@@ -140,7 +153,7 @@ export const OverviewPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* KPI 3: Active Stock Alerts (Clickable → Inventory Filter) */}
+        {/* KPI 3: Active Stock Alerts */}
         <Card
           onClick={() => navigate('/dashboard/inventory')}
           className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm cursor-pointer hover:border-indigo-500/50 transition-all group"
@@ -209,6 +222,33 @@ export const OverviewPage: React.FC = () => {
         status={data.healthStatus}
         breakdown={data.healthBreakdown}
       />
+
+      {/* FEATURED BANNER — Digital Twin Flagship Banner */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-indigo-950/90 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-indigo-600 text-white">
+              <Layers className="w-4 h-4" />
+            </span>
+            <h3 className="text-base font-bold text-white">Store Digital Twin & Real-Time Heatmap</h3>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold border border-emerald-500/30">
+              60 FPS Live
+            </span>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+            Inspect real-time 2D floor plans, spatial shopper density heatmaps, and vision camera coverage zones.
+          </p>
+        </div>
+
+        <Button
+          onClick={() => navigate('/dashboard/store-map')}
+          variant="primary"
+          className="gap-2 bg-indigo-600 hover:bg-indigo-500 shrink-0"
+        >
+          <span>Open Digital Twin Workspace</span>
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+      </div>
 
       {/* THIRD ROW — Two Side-by-Side Telemetry Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

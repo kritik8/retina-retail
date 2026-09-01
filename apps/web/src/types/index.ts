@@ -1,6 +1,7 @@
 export type BusinessType = 'kirana' | 'supermarket' | 'pharmacy' | 'other';
 export type DeviceType = 'camera' | 'sensor';
 export type DeviceStatus = 'pending' | 'online' | 'offline';
+export type ZoneCategory = 'entrance' | 'aisle' | 'checkout' | 'storage' | 'other';
 
 export interface Profile {
   id: string;
@@ -32,6 +33,42 @@ export interface Device {
   status: DeviceStatus;
   last_heartbeat: string | null;
   created_at: string;
+}
+
+export interface StoreZone {
+  id: string;
+  name: string;
+  x: number; // percentage 0-100
+  y: number; // percentage 0-100
+  width: number; // percentage 0-100
+  height: number; // percentage 0-100
+  cameraId: string | null;
+  category: ZoneCategory;
+  density?: number; // 0-100 live value
+  shopperCount?: number;
+}
+
+export interface StoreLayoutConfig {
+  zones: StoreZone[];
+  gridColumns?: number;
+  gridRows?: number;
+}
+
+export interface StoreLayout {
+  id?: string;
+  shop_id: string;
+  layout_json: StoreLayoutConfig;
+  updated_at?: string;
+}
+
+export interface ShopperParticle {
+  id: string;
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  speed: number;
+  zoneId: string;
 }
 
 export interface UserSession {

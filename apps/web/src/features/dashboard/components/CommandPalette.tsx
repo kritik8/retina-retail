@@ -6,6 +6,7 @@ import { useAuth } from '@/features/auth/useAuth';
 import {
   Search,
   LayoutDashboard,
+  Layers,
   Users,
   Package,
   Clock,
@@ -48,6 +49,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       shortcut: 'G O',
       action: () => {
         navigate('/dashboard/overview');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-store-map',
+      title: 'Store Digital Twin & Live Map',
+      category: 'Navigation',
+      icon: Layers,
+      shortcut: 'G M',
+      action: () => {
+        navigate('/dashboard/store-map');
         onClose();
       },
     },
