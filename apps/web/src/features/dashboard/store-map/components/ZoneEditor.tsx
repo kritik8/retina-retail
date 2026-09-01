@@ -73,11 +73,14 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
-      <div className="flex items-center justify-between">
+    <div
+      className="rounded-[10px] p-6 space-y-6"
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-bold text-white">Store Floor Plan Layout Editor</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h3 className="font-serif text-base font-semibold" style={{ color: 'var(--fg)' }}>Floor Plan Layout Editor</h3>
+          <p className="font-sans text-xs mt-0.5" style={{ color: 'var(--fg-muted)' }}>
             Configure rectangular store zones, assign camera nodes, and calibrate grid coordinates.
           </p>
         </div>
@@ -85,7 +88,7 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
         <div className="flex items-center gap-2">
           <Button onClick={handleResetPreset} variant="outline" size="sm" className="gap-1.5">
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Preset Template</span>
+            <span>Reset Preset</span>
           </Button>
 
           <Button onClick={handleAddZone} variant="secondary" size="sm" className="gap-1.5">
@@ -93,7 +96,7 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
             <span>Add Zone</span>
           </Button>
 
-          <Button onClick={handleSave} isLoading={isSaving} variant="primary" size="sm" className="gap-1.5 bg-indigo-600 hover:bg-indigo-500">
+          <Button onClick={handleSave} isLoading={isSaving} variant="primary" size="sm" className="gap-1.5">
             {saveSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
             <span>{saveSuccess ? 'Saved!' : 'Save Layout'}</span>
           </Button>
@@ -102,9 +105,12 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
 
       {/* Selected Zone Editing Form */}
       {selectedZone && (
-        <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-4">
+        <div
+          className="p-4 rounded-lg space-y-4"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+        >
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+            <h4 className="font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--accent-fg)' }}>
               Editing: {selectedZone.name}
             </h4>
             <Button
@@ -125,13 +131,21 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
             />
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label
+                className="block font-mono text-[10px] font-semibold uppercase tracking-widest mb-1.5"
+                style={{ color: 'var(--fg-muted)' }}
+              >
                 Category
               </label>
               <select
                 value={selectedZone.category}
                 onChange={(e) => handleUpdateZone(selectedZone.id, { category: e.target.value as ZoneCategory })}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-800 bg-slate-900 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                className="w-full px-3 py-2 rounded-lg text-xs transition-colors duration-150 outline-none"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--fg)',
+                  border: '1px solid var(--border)',
+                }}
               >
                 <option value="entrance">Entrance</option>
                 <option value="aisle">Aisle</option>
@@ -142,13 +156,21 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+              <label
+                className="block font-mono text-[10px] font-semibold uppercase tracking-widest mb-1.5"
+                style={{ color: 'var(--fg-muted)' }}
+              >
                 Assigned Edge Camera
               </label>
               <select
                 value={selectedZone.cameraId || ''}
                 onChange={(e) => handleUpdateZone(selectedZone.id, { cameraId: e.target.value || null })}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-800 bg-slate-900 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                className="w-full px-3 py-2 rounded-lg text-xs transition-colors duration-150 outline-none"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--fg)',
+                  border: '1px solid var(--border)',
+                }}
               >
                 <option value="">None (Unmonitored)</option>
                 <option value="cam-01">Main Entrance Optics #1 (cam-01)</option>

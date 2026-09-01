@@ -16,6 +16,7 @@
     "@tanstack/react-query": "^5.66.5",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",
+    "geist": "^1.7.2",
     "lucide-react": "^0.475.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",

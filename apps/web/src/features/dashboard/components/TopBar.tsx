@@ -10,7 +10,6 @@ import {
   ChevronDown,
   LogOut,
   Settings,
-  Menu,
 } from 'lucide-react';
 
 interface TopBarProps {
@@ -20,7 +19,6 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({
   onOpenCommandPalette,
-  onToggleMobileMenu,
 }) => {
   const { user, shop, logout } = useAuth();
   const { setTheme, isDark } = useTheme();
@@ -45,95 +43,93 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-200">
-      {/* Left: Mobile Menu Button + Shop Badge */}
+    <header
+      className="h-14 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-150"
+      style={{ background: 'var(--bg-overlay)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(12px)' }}
+    >
+      {/* Left: Shop Name */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
-          aria-label="Open Mobile Menu"
+        <div
+          className="flex items-center gap-2 px-2.5 py-1 rounded-lg"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
         >
-          <Menu className="w-5 h-5" />
-        </button>
-
-        {/* Shop Name Display / Switcher */}
-        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          <div className="p-1 rounded-md bg-indigo-600/10 text-indigo-500">
-            <Store className="w-4 h-4" />
+          <div className="p-1 rounded-md" style={{ background: 'var(--accent-subtle)', color: 'var(--accent-fg)' }}>
+            <Store className="w-3.5 h-3.5" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-900 dark:text-white leading-none">
+              <span className="font-serif text-xs font-semibold leading-none" style={{ color: 'var(--fg)' }}>
                 {shop?.shop_name || 'My Store'}
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--status-ok)' }} />
             </div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize block mt-0.5">
-              {shop?.business_type || 'Retail'} • {shop?.city || 'Live Node'}
+            <span className="font-mono text-[9px] uppercase block mt-0.5" style={{ color: 'var(--fg-subtle)' }}>
+              {shop?.business_type || 'Retail'} · {shop?.city || 'Live Node'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Center: Command Palette Trigger Button */}
+      {/* Center: Command Palette Button */}
       <button
         onClick={onOpenCommandPalette}
-        className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all text-xs w-64 justify-between"
+        className="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs w-60 justify-between transition-colors duration-150"
+        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
       >
         <span className="flex items-center gap-2">
-          <Search className="w-3.5 h-3.5 text-slate-400" />
-          <span>Search or jump to...</span>
+          <Search className="w-3.5 h-3.5" style={{ color: 'var(--fg-subtle)' }} />
+          <span className="font-sans">Search dashboard...</span>
         </span>
-        <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+        <kbd
+          className="font-mono text-[10px] px-1.5 py-0.5 rounded"
+          style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--fg-subtle)' }}
+        >
           ⌘K
         </kbd>
       </button>
 
-      {/* Right Controls: Search Mobile Icon + Theme Toggle + User Menu */}
+      {/* Right Controls */}
       <div className="flex items-center gap-2">
         <button
-          onClick={onOpenCommandPalette}
-          className="md:hidden p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
-        >
-          <Search className="w-5 h-5" />
-        </button>
-
-        {/* Theme Switcher Button */}
-        <button
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+          className="p-1.5 rounded-lg transition-colors duration-150"
+          style={{ color: 'var(--fg-subtle)' }}
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
 
-        {/* User Profile Avatar Dropdown */}
+        {/* User Profile */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsProfileOpen((prev) => !prev)}
-            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+            className="flex items-center gap-2 p-1 rounded-lg transition-colors"
           >
             <img
               src={
                 user?.user_metadata?.avatar_url ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
                   user?.user_metadata?.full_name || 'Store Owner'
-                )}&background=4f46e5&color=fff`
+                )}&background=D4A84B&color=2A1E00&bold=true&length=1`
               }
               alt="Avatar"
-              className="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-700 object-cover"
+              className="w-7 h-7 rounded-full object-cover"
+              style={{ border: '1.5px solid var(--border-strong)' }}
             />
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--fg-subtle)' }} />
           </button>
 
-          {/* Profile Dropdown Box */}
+          {/* Profile Dropdown */}
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-1.5 space-y-1 z-50 text-xs">
-              <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-                <p className="font-semibold text-slate-900 dark:text-white truncate">
+            <div
+              className="absolute right-0 mt-2 w-52 rounded-lg shadow-xl p-1.5 space-y-1 z-50 text-xs"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+            >
+              <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
+                <p className="font-serif font-semibold truncate" style={{ color: 'var(--fg)' }}>
                   {user?.user_metadata?.full_name || 'Store Owner'}
                 </p>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">{user?.email || 'authenticated'}</p>
+                <p className="font-mono text-[10px] truncate mt-0.5" style={{ color: 'var(--fg-muted)' }}>{user?.email || 'authenticated'}</p>
               </div>
 
               <button
@@ -141,16 +137,18 @@ export const TopBar: React.FC<TopBarProps> = ({
                   setIsProfileOpen(false);
                   navigate('/dashboard/settings');
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-md transition-colors"
+                style={{ color: 'var(--fg)' }}
               >
-                <Settings className="w-3.5 h-3.5 text-slate-400" />
+                <Settings className="w-3.5 h-3.5" style={{ color: 'var(--fg-subtle)' }} />
                 <span>Store Settings</span>
               </button>
 
-              <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '4px' }}>
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors font-medium"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md font-medium transition-colors"
+                  style={{ color: 'var(--status-err)' }}
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>

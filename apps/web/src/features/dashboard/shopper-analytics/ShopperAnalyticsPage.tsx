@@ -6,22 +6,24 @@ export const ShopperAnalyticsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Shopper Analytics</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="font-serif text-2xl font-bold tracking-tight" style={{ color: 'var(--fg)' }}>
+          Shopper Analytics
+        </h1>
+        <p className="font-sans text-xs mt-1" style={{ color: 'var(--fg-muted)' }}>
           Demographics, footfall patterns, dwell times, and aisle heatmaps streamed from edge vision nodes.
         </p>
       </div>
 
-      <Card className="bg-slate-900 border-slate-800">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-400" />
+          <CardTitle className="font-serif text-base flex items-center gap-2" style={{ color: 'var(--fg)' }}>
+            <Users className="w-4 h-4" style={{ color: 'var(--fg-subtle)' }} />
             <span>Store Footfall & Demographics</span>
           </CardTitle>
-          <CardDescription>Live shopper counts aggregated from multi-task vision backbones</CardDescription>
+          <CardDescription style={{ color: 'var(--fg-muted)' }}>Live shopper counts aggregated from multi-task vision backbones</CardDescription>
         </CardHeader>
-        <CardContent className="h-64 flex items-center justify-center border border-dashed border-slate-800 rounded-xl bg-slate-950/50">
-          <p className="text-sm text-slate-400 font-medium">Real-time shopper analytics charts will populate here.</p>
+        <CardContent className="h-64 flex items-center justify-center border border-dashed rounded-lg" style={{ background: 'var(--bg)', borderColor: 'var(--border-strong)' }}>
+          <p className="font-mono text-xs font-medium" style={{ color: 'var(--fg-muted)' }}>Real-time shopper analytics telemetry active.</p>
         </CardContent>
       </Card>
     </div>

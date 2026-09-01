@@ -1,118 +1,175 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* ─── External Fonts ─────────────────────────────────────────────────────────
+   Fraunces: editorial serif — page headings, hero numbers
+   Geist: grotesk sans — UI chrome, body copy, form labels
+   JetBrains Mono / Geist Mono: monospace — labels, timestamps, IDs
+──────────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-/* ─── Design Token Layer ─────────────────────────────────────────────────── */
+/* ─── Design Token System ───────────────────────────────────────────────────
+   PHILOSOPHY: Monochrome backbone. Color reserved for meaning only.
+   4 semantic accents: butter-yellow (interactive), sage-green (positive),
+   rose (negative/error), amber-peach (warning). Never used decoratively.
+──────────────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Backgrounds */
-    --bg:          #F7F6F3;
-    --bg-elevated: #FFFFFF;
-    --bg-subtle:   #EFEEEA;
-    --bg-overlay:  rgba(247,246,243,0.88);
+    /* ── Backgrounds ──────────────────────────────────────── */
+    --bg:          #FBF9F1;   /* warm paper — faint butter undertone           */
+    --bg-elevated: #FFFFFF;   /* cards, modals, floating surfaces              */
+    --bg-subtle:   #F3F1E8;   /* hover fills, zebra rows, inset areas          */
+    --bg-overlay:  rgba(251,249,241,0.90);
 
-    /* Borders */
-    --border:        #E3E2DE;
-    --border-strong: #C9C8C3;
+    /* ── Borders ─────────────────────────────────────────── */
+    --border:        #E6E3D8; /* hairline — low contrast, always visible       */
+    --border-strong: #CCC9BB; /* input focus, section dividers                 */
 
-    /* Foreground / Typography */
-    --fg:        #1A1917;
-    --fg-muted:  #6B6A65;
-    --fg-subtle: #9E9C96;
+    /* ── Foreground / Typography ─────────────────────────── */
+    --fg:        #2A2A28;     /* primary text — dark charcoal, not pure black  */
+    --fg-muted:  #6A6860;     /* secondary / helper text                       */
+    --fg-subtle: #9A9890;     /* placeholders, low-emphasis labels             */
 
-    /* Accent — butter yellow */
-    --accent:        #E8D796;
-    --accent-hover:  #DFC878;
-    --accent-fg:     #3D3000;
-    --accent-subtle: #FEFAE8;
+    /* ── Accent: Butter Yellow (interactive only) ────────── */
+    --accent:        #D4A84B; /* active states, primary buttons, focus rings   */
+    --accent-hover:  #C49A3C;
+    --accent-fg:     #2A1E00; /* text ON yellow surfaces (dark for contrast)  */
+    --accent-subtle: #FBF3D0; /* faint tint: active pill bg, selected cards   */
+    --accent-border: #E0C070; /* border version, slightly brighter             */
 
-    /* Semantic Status (muted, desaturated) */
-    --status-ok:   #5A8A5A;
-    --status-warn: #A07830;
-    --status-err:  #A04848;
-    --status-ok-bg:   #EEF6EE;
-    --status-warn-bg: #FBF3E5;
-    --status-err-bg:  #FAF0F0;
+    /* ── Sage Green: positive/success only ──────────────── */
+    --status-ok:      #4E7A58; /* muted sage green                              */
+    --status-ok-bg:   #ECF4EE;
+    --status-ok-border:#B8D8C0;
 
-    /* Dock Glass */
-    --dock-bg:     rgba(255,255,255,0.86);
-    --dock-border: rgba(0,0,0,0.08);
+    /* ── Amber-Peach: warning only (leans orange, not yellow) */
+    --status-warn:      #B87040; /* muted amber-peach — visually distinct       */
+    --status-warn-bg:   #FBF0E6;
+    --status-warn-border:#E8C0A0;
+
+    /* ── Pale Rose: negative/error only ─────────────────── */
+    --status-err:      #9E4848; /* muted rose-red                               */
+    --status-err-bg:   #FAF0F0;
+    --status-err-border:#E0B8B8;
+
+    /* ── Dock / Glass ────────────────────────────────────── */
+    --dock-bg:     rgba(255,255,255,0.88);
+    --dock-border: rgba(0,0,0,0.09);
+    --dock-active: rgba(0,0,0,0.07); /* neutral gray hover/active highlight  */
+    --dock-hover:  rgba(0,0,0,0.04);
+
+    /* ── Chart Series ────────────────────────────────────── */
+    --chart-primary: #2A2A28;   /* main data series — charcoal                */
+    --chart-muted:   #A8A59C;   /* secondary/average line — gray              */
+    --chart-grid:    #E6E3D8;   /* gridlines                                  */
+    --chart-area:    rgba(42,42,40,0.08); /* area fill under primary line     */
   }
 
   .dark {
-    /* Backgrounds */
-    --bg:          #18181A;
-    --bg-elevated: #222224;
-    --bg-subtle:   #2A2A2C;
-    --bg-overlay:  rgba(24,24,26,0.88);
+    /* ── Backgrounds ──────────────────────────────────────── */
+    --bg:          #19191A;
+    --bg-elevated: #232325;
+    --bg-subtle:   #2D2D2F;
+    --bg-overlay:  rgba(25,25,26,0.90);
 
-    /* Borders */
-    --border:        #2E2E30;
-    --border-strong: #3E3E42;
+    /* ── Borders ─────────────────────────────────────────── */
+    --border:        #333336;
+    --border-strong: #484850;
 
-    /* Foreground */
-    --fg:        #EFEFED;
-    --fg-muted:  #8E8E93;
-    --fg-subtle: #5A5A60;
+    /* ── Foreground ─────────────────────────────────────── */
+    --fg:        #EDEDE9;     /* off-white — not yellow, not pure white        */
+    --fg-muted:  #8E8E8A;
+    --fg-subtle: #5A5A5E;
 
-    /* Accent — slightly deeper for dark legibility */
-    --accent:        #D4C06A;
-    --accent-hover:  #C4B058;
+    /* ── Accent: Butter Yellow (darker, richer for dark bg) */
+    --accent:        #C9A03E;
+    --accent-hover:  #B89030;
     --accent-fg:     #1A1200;
-    --accent-subtle: #26210A;
+    --accent-subtle: #27220A;
+    --accent-border: #8A7030;
 
-    /* Semantic Status */
-    --status-ok:   #4A9A5A;
-    --status-warn: #C09040;
-    --status-err:  #C05858;
-    --status-ok-bg:   #0E1F10;
-    --status-warn-bg: #1F1800;
-    --status-err-bg:  #1F0E0E;
+    /* ── Status ──────────────────────────────────────────── */
+    --status-ok:      #4A9A5C;
+    --status-ok-bg:   #0E1F12;
+    --status-ok-border:#1E4028;
 
-    /* Dock Glass */
-    --dock-bg:     rgba(34,34,36,0.90);
+    --status-warn:      #C08050;
+    --status-warn-bg:   #1F1808;
+    --status-warn-border:#3A2810;
+
+    --status-err:      #C05858;
+    --status-err-bg:   #1F0E0E;
+    --status-err-border:#3A1818;
+
+    /* ── Dock ────────────────────────────────────────────── */
+    --dock-bg:     rgba(35,35,37,0.92);
     --dock-border: rgba(255,255,255,0.08);
+    --dock-active: rgba(255,255,255,0.09);
+    --dock-hover:  rgba(255,255,255,0.05);
+
+    /* ── Chart ───────────────────────────────────────────── */
+    --chart-primary: #EDEDE9;
+    --chart-muted:   #5A5A5E;
+    --chart-grid:    #333336;
+    --chart-area:    rgba(237,237,233,0.08);
   }
 
-  /* ─── Base Styles ──────────────────────────────────────────────────── */
+  /* ─── Base Typography ────────────────────────────────────────────── */
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 14px;
   }
 
   body {
     background-color: var(--bg);
     color: var(--fg);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-size: 14px;
+    font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.5;
     min-height: 100vh;
     transition: background-color 180ms ease, color 180ms ease;
   }
 
-  /* Monospace for data — applied via font-mono class */
+  /* Serif: page headings, hero numbers, wordmark */
+  .font-serif,
+  [data-serif] {
+    font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  }
+
+  /* Mono: labels, timestamps, IDs, KPI category labels */
   .font-mono,
   [data-mono],
   kbd,
   code {
-    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+    font-family: 'Geist Mono', 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
   }
 
-  /* Hairline border utility */
+  /* Hairline border baseline */
   * {
     border-color: var(--border);
   }
+
+  /* Focus ring reset */
+  *:focus {
+    outline: none;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--accent-border);
+    outline-offset: 2px;
+  }
 }
 
-/* ─── Dock Glass Effect ──────────────────────────────────────────────────── */
+/* ─── Dock Glass ─────────────────────────────────────────────────────────── */
 .dock-glass {
   background: var(--dock-bg);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
   border: 1px solid var(--dock-border);
 }
 
-/* ─── Scrollbar Styling ──────────────────────────────────────────────────── */
+/* ─── Custom Scrollbar ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--fg-subtle); }
+
+/* ─── Selection Highlight ────────────────────────────────────────────────── */
+::selection { background: var(--accent-subtle); color: var(--fg); }

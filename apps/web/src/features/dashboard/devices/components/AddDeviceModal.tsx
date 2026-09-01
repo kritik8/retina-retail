@@ -36,7 +36,6 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Generate unique 6-character pairing code when modal opens
   useEffect(() => {
     if (isOpen) {
       const code = 'RET-' + Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -72,17 +71,15 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
     if (!createdDevice) return;
     setIsSimulatingPairing(true);
 
-    // Simulate 2.2s edge device handshake
     setTimeout(async () => {
       await onUpdateStatus({ deviceId: createdDevice.id, status: 'online' });
       setIsSimulatingPairing(false);
       setIsSuccess(true);
 
-      // Auto close after 2s success celebration
       setTimeout(() => {
         onClose();
-      }, 2200);
-    }, 2000);
+      }, 2000);
+    }, 1800);
   };
 
   const copyPairingCode = () => {
@@ -104,80 +101,91 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm"
+          className="fixed inset-0"
+          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
         />
 
         {/* Dialog Window */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 12 }}
+          initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 12 }}
-          transition={{ duration: 0.2 }}
-          className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-10 relative"
+          exit={{ opacity: 0, scale: 0.96, y: 10 }}
+          transition={{ duration: 0.18 }}
+          className="w-full max-w-md rounded-[10px] shadow-2xl overflow-hidden z-10 relative"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-950/50">
+          <div
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}
+          >
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20">
-                <Camera className="w-5 h-5" />
+              <div className="p-1.5 rounded-md" style={{ background: 'var(--bg-subtle)', color: 'var(--fg)' }}>
+                <Camera className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Pair Edge Camera / Hardware</h3>
-                <p className="text-xs text-slate-400">Connect a new SNPE/QNN camera node to your store</p>
+                <h3 className="font-serif text-sm font-semibold" style={{ color: 'var(--fg)' }}>Pair Edge Camera</h3>
+                <p className="font-sans text-[11px]" style={{ color: 'var(--fg-muted)' }}>Connect vision node to your store</p>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+              className="p-1 rounded-lg transition-colors"
+              style={{ color: 'var(--fg-subtle)' }}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Body */}
-          <div className="p-6 space-y-6">
+          <div className="p-5 space-y-5">
             {isSuccess ? (
-              /* Success Celebration Animation */
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="py-8 text-center space-y-4"
+                className="py-6 text-center space-y-3"
               >
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/10">
-                  <CheckCircle2 className="w-10 h-10 animate-bounce" />
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center mx-auto"
+                  style={{ background: 'var(--status-ok-bg)', color: 'var(--status-ok)', border: '1px solid var(--status-ok-border)' }}
+                >
+                  <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-white">Hardware Connected!</h3>
-                  <p className="text-sm text-emerald-400 font-medium">
-                    Edge node is now online & streaming live vision telemetry.
+                <div className="space-y-0.5">
+                  <h3 className="font-serif text-lg font-bold" style={{ color: 'var(--fg)' }}>Hardware Connected!</h3>
+                  <p className="font-sans text-xs" style={{ color: 'var(--status-ok)' }}>
+                    Edge node is online & streaming vision telemetry.
                   </p>
                 </div>
               </motion.div>
             ) : !createdDevice ? (
-              /* Step 1: Set Device Name & Generate Code */
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <Input
-                  label="Device Name / Location Identifier"
+                  label="Device Name / Location"
                   value={deviceName}
                   onChange={(e) => setDeviceName(e.target.value)}
-                  placeholder="e.g. Aisle 4 Optics Camera"
+                  placeholder="e.g. Aisle 4 Camera"
                 />
 
-                <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">
+                <div
+                  className="p-4 rounded-lg space-y-1.5"
+                  style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+                >
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest block" style={{ color: 'var(--fg-subtle)' }}>
                     Generated Pairing Code
                   </span>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-mono font-extrabold text-indigo-400 tracking-wider">
+                    <span className="font-serif text-xl font-bold tracking-wider" style={{ color: 'var(--fg)' }}>
                       {pairingCode}
                     </span>
                     <button
                       type="button"
                       onClick={copyPairingCode}
-                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200"
+                      className="flex items-center gap-1 font-mono text-[11px]"
+                      style={{ color: 'var(--fg-muted)' }}
                     >
-                      {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      {copied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--status-ok)' }} /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copied ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
@@ -187,49 +195,55 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
                   onClick={handleInitiatePairing}
                   isLoading={isCreating}
                   variant="primary"
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl gap-2 font-semibold"
+                  size="sm"
+                  className="w-full py-2.5 gap-2"
                 >
-                  <QrCode className="w-4 h-4" />
-                  <span>Generate QR Pairing Code</span>
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>Generate QR Code</span>
                 </Button>
               </div>
             ) : (
-              /* Step 2: Show QR Code + Pairing Listener + Dev Simulation */
-              <div className="space-y-6 text-center">
-                {/* QR Code Frame */}
-                <div className="inline-block p-4 bg-white rounded-2xl shadow-xl border-4 border-indigo-500/30">
-                  <QRCodeSVG value={pairingUrl} size={160} level="H" />
+              <div className="space-y-5 text-center">
+                {/* QR Code */}
+                <div
+                  className="inline-block p-3 rounded-xl shadow-sm"
+                  style={{ background: '#FFFFFF', border: '1px solid var(--border-strong)' }}
+                >
+                  <QRCodeSVG value={pairingUrl} size={140} level="H" />
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">
-                    Scan or enter on edge device:
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest block" style={{ color: 'var(--fg-subtle)' }}>
+                    Scan or enter code:
                   </span>
-                  <div className="text-2xl font-mono font-bold text-indigo-400 tracking-wider">
+                  <div className="font-serif text-xl font-bold tracking-wider" style={{ color: 'var(--fg)' }}>
                     {createdDevice.pairing_code}
                   </div>
-                  <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed pt-1">
-                    Enter this code on your RetinaRetail edge hardware screen to pair it with this store.
+                  <p className="font-sans text-[11px] max-w-xs mx-auto pt-0.5" style={{ color: 'var(--fg-muted)' }}>
+                    Enter this code on your RetinaRetail edge hardware screen to pair.
                   </p>
                 </div>
 
-                {/* Waiting indicator */}
-                <div className="flex items-center justify-center gap-2 py-2 px-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400">
-                  <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
-                  <span>Waiting for edge device heartbeat... (Status: <strong className="text-amber-400 capitalize">{createdDevice.status}</strong>)</span>
+                {/* Status indicator */}
+                <div
+                  className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-mono text-[11px]"
+                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
+                >
+                  <Loader2 className="w-3 h-3 animate-spin" style={{ color: 'var(--accent)' }} />
+                  <span>Status: <strong style={{ color: 'var(--status-warn)' }}>{createdDevice.status}</strong></span>
                 </div>
 
-                {/* Dev-Only Simulated Connection Button */}
-                <div className="pt-2 border-t border-slate-800/80">
+                {/* Dev Simulation Button */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
                   <Button
                     onClick={handleSimulateConnection}
                     isLoading={isSimulatingPairing}
                     variant="outline"
                     size="sm"
-                    className="w-full border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 gap-2"
+                    className="w-full gap-1.5"
                   >
-                    <Zap className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>⚡ Simulate Edge Device Connecting (Dev Demo)</span>
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Simulate Edge Connection (Dev Demo)</span>
                   </Button>
                 </div>
               </div>
