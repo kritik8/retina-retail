@@ -5,197 +5,204 @@ import { AddDeviceModal } from './components/AddDeviceModal';
 import { DeviceDetailDrawer } from './components/DeviceDetailDrawer';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   Camera,
   Plus,
   Wifi,
+  WifiOff,
   Activity,
-  CheckCircle2,
-  AlertTriangle,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 import type { Device } from '@/types';
+
+const STATUS_COLORS: Record<string, string> = {
+  online:  'var(--status-ok)',
+  pending: 'var(--status-warn)',
+  offline: 'var(--status-err)',
+};
+
+const STATUS_BG: Record<string, string> = {
+  online:  'var(--status-ok-bg)',
+  pending: 'var(--status-warn-bg)',
+  offline: 'var(--status-err-bg)',
+};
+
+const TABS = ['all', 'online', 'pending', 'offline'] as const;
+type Tab = typeof TABS[number];
 
 export const DevicesPage: React.FC = () => {
   const { shop } = useAuth();
   const { devices, isLoading, addDevice, updateDeviceStatus, deleteDevice } = useDevicesData(shop?.id);
-
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'online' | 'offline' | 'pending'>('all');
+  const [activeTab, setActiveTab] = useState<Tab>('all');
 
-  const filteredDevices = devices.filter((d) => {
-    if (activeTab === 'all') return true;
-    return d.status === activeTab;
-  });
+  const counts = {
+    all:     devices.length,
+    online:  devices.filter(d => d.status === 'online').length,
+    pending: devices.filter(d => d.status === 'pending').length,
+    offline: devices.filter(d => d.status === 'offline').length,
+  };
 
-  const onlineCount = devices.filter((d) => d.status === 'online').length;
-  const pendingCount = devices.filter((d) => d.status === 'pending').length;
-  const offlineCount = devices.filter((d) => d.status === 'offline').length;
+  const filteredDevices = devices.filter(d =>
+    activeTab === 'all' ? true : d.status === activeTab
+  );
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Edge Hardware & Cameras
-            </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-              <Sparkles className="w-3 h-3" /> SNPE / QNN Mesh
-            </span>
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Manage vision sensor nodes, pairing codes, and live camera telemetry for{' '}
-            <span className="text-indigo-400 font-semibold">{shop?.shop_name}</span>.
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+        <div className="space-y-0.5">
+          <h1 className="text-[22px] font-semibold tracking-tight" style={{ color: 'var(--fg)' }}>
+            Edge Devices
+          </h1>
+          <p className="text-[13px]" style={{ color: 'var(--fg-muted)' }}>
+            Vision sensor nodes for {shop?.shop_name}
           </p>
         </div>
-
-        <Button
-          onClick={() => setIsAddModalOpen(true)}
-          variant="primary"
-          className="gap-2 bg-indigo-600 hover:bg-indigo-500"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Camera</span>
+        <Button onClick={() => setIsAddModalOpen(true)} variant="primary" size="sm">
+          <Plus className="w-3.5 h-3.5" />
+          Add Camera
         </Button>
       </div>
 
-      {/* Stats Summary Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Nodes</span>
-            <h3 className="text-2xl font-bold text-white mt-0.5">{devices.length}</h3>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Total Nodes',     value: counts.all,     icon: Camera,   status: '' },
+          { label: 'Online & Active', value: counts.online,  icon: Activity, status: 'online' },
+          { label: 'Pending Pairing', value: counts.pending, icon: Wifi,     status: 'pending' },
+          { label: 'Offline',         value: counts.offline, icon: WifiOff,  status: 'offline' },
+        ].map(({ label, value, icon: Icon, status }) => (
+          <div
+            key={label}
+            className="p-4 rounded-[10px] flex items-center justify-between"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+          >
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--fg-subtle)' }}>
+                {label}
+              </span>
+              <div
+                className="font-mono text-[22px] font-semibold mt-0.5"
+                style={{ color: status ? STATUS_COLORS[status] : 'var(--fg)' }}
+              >
+                {value}
+              </div>
+            </div>
+            <Icon className="w-4 h-4" style={{ color: 'var(--fg-subtle)', opacity: 0.4 }} />
           </div>
-          <div className="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-            <Camera className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Online & Active</span>
-            <h3 className="text-2xl font-bold text-emerald-400 mt-0.5">{onlineCount}</h3>
-          </div>
-          <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Pairing</span>
-            <h3 className="text-2xl font-bold text-amber-400 mt-0.5">{pendingCount}</h3>
-          </div>
-          <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-            <Activity className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Offline Nodes</span>
-            <h3 className="text-2xl font-bold text-rose-400 mt-0.5">{offlineCount}</h3>
-          </div>
-          <div className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-        {(['all', 'online', 'pending', 'offline'] as const).map((tab) => (
+      <div
+        className="flex items-center gap-1 pb-3"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
-              activeTab === tab
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-            }`}
+            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-widest transition-colors duration-150"
+            style={{
+              background: activeTab === tab ? 'var(--accent-subtle)' : 'transparent',
+              color: activeTab === tab ? 'var(--accent-fg)' : 'var(--fg-subtle)',
+              border: `1px solid ${activeTab === tab ? 'var(--accent)' : 'transparent'}`,
+            }}
           >
-            {tab} {tab === 'all' ? `(${devices.length})` : tab === 'online' ? `(${onlineCount})` : tab === 'pending' ? `(${pendingCount})` : `(${offlineCount})`}
+            {tab} ({counts[tab]})
           </button>
         ))}
       </div>
 
-      {/* Device Cards Grid */}
+      {/* Device Grid */}
       {isLoading ? (
-        <div className="min-h-[40vh] flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="p-5 rounded-[10px] space-y-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3.5 w-28" />
+                <Skeleton className="h-5 w-14 rounded-full" />
+              </div>
+              <Skeleton className="h-2.5 w-48" />
+              <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                <Skeleton className="h-2.5 w-20" />
+                <Skeleton className="h-2.5 w-32" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredDevices.length === 0 ? (
-        <div className="p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-950/50 space-y-3">
-          <Camera className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-base font-semibold text-white">No hardware devices found</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Click "+ Add Camera" above to pair your first SNPE vision node with this store location.
-          </p>
-          <Button onClick={() => setIsAddModalOpen(true)} variant="primary" size="sm" className="gap-2">
-            <Plus className="w-4 h-4" />
-            <span>Pair Camera Now</span>
-          </Button>
-        </div>
+        <EmptyState
+          type="no-devices"
+          onAction={() => setIsAddModalOpen(true)}
+          actionLabel="Pair Camera Now"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDevices.map((device) => {
+          {filteredDevices.map(device => {
             const isOnline = device.status === 'online';
-            const isPending = device.status === 'pending';
+            const statusColor = STATUS_COLORS[device.status] || 'var(--fg-subtle)';
+            const statusBg = STATUS_BG[device.status] || 'var(--bg-subtle)';
 
             return (
               <Card
                 key={device.id}
                 onClick={() => setSelectedDevice(device)}
-                className="bg-slate-900 border-slate-800 hover:border-indigo-500/50 transition-all cursor-pointer group shadow-sm"
+                className="cursor-pointer group"
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
               >
                 <CardContent className="p-5 space-y-4">
-                  {/* Top Row: Name & Status Pulse */}
+                  {/* Name + Status */}
                   <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-0.5 min-w-0">
-                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors truncate">
+                    <div className="min-w-0">
+                      <h4
+                        className="text-[13px] font-semibold truncate transition-colors"
+                        style={{ color: 'var(--fg)' }}
+                      >
                         {device.device_name}
                       </h4>
-                      <p className="text-xs text-slate-400 capitalize flex items-center gap-1">
-                        <Layers className="w-3 h-3 text-indigo-400 shrink-0" />
-                        <span>{device.device_type} • Code: {device.pairing_code}</span>
+                      <p className="text-[11px] flex items-center gap-1 mt-0.5" style={{ color: 'var(--fg-subtle)' }}>
+                        <Layers className="w-2.5 h-2.5 shrink-0" />
+                        {device.device_type} · {device.pairing_code}
                       </p>
                     </div>
-
-                    {/* Status Badge */}
                     <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border flex items-center gap-1.5 shrink-0 ${
-                        isOnline
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : isPending
-                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                          : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                      }`}
+                      className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1 shrink-0"
+                      style={{
+                        background: statusBg,
+                        color: statusColor,
+                        border: `1px solid ${statusColor}30`,
+                      }}
                     >
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          isOnline
-                            ? 'bg-emerald-500 animate-pulse'
-                            : isPending
-                            ? 'bg-amber-500 animate-ping'
-                            : 'bg-rose-500'
-                        }`}
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{
+                          background: statusColor,
+                          animation: isOnline ? 'pulse 2s infinite' : undefined,
+                        }}
                       />
-                      <span>{device.status}</span>
+                      {device.status}
                     </span>
                   </div>
 
-                  {/* Card Footer: Signal Strength & Last Heartbeat */}
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono">
-                    <div className="flex items-center gap-1.5">
-                      <Wifi className={`w-3.5 h-3.5 ${isOnline ? 'text-emerald-400' : 'text-slate-500'}`} />
-                      <span>{isOnline ? '4/4 Signal' : 'No Signal'}</span>
+                  {/* Footer */}
+                  <div
+                    className="flex items-center justify-between font-mono text-[11px] pt-3"
+                    style={{ borderTop: '1px solid var(--border)', color: 'var(--fg-subtle)' }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {isOnline
+                        ? <Wifi className="w-3 h-3" style={{ color: 'var(--status-ok)' }} />
+                        : <WifiOff className="w-3 h-3" />
+                      }
+                      <span>{isOnline ? '4/4 bars' : 'No signal'}</span>
                     </div>
-
-                    <span>Heartbeat: {device.last_heartbeat || 'Pending'}</span>
+                    <span>{device.last_heartbeat || 'Awaiting'}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -204,7 +211,6 @@ export const DevicesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Add Device Modal */}
       <AddDeviceModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -212,7 +218,6 @@ export const DevicesPage: React.FC = () => {
         onUpdateStatus={updateDeviceStatus}
       />
 
-      {/* Device Detail Drawer */}
       <DeviceDetailDrawer
         device={selectedDevice}
         onClose={() => setSelectedDevice(null)}

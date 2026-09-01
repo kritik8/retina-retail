@@ -1,50 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+/* ─── Design Token Layer ─────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --bg-main: #f8fafc;
-    --card-bg: #ffffff;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
-    --border-color: #e2e8f0;
-    --brand-primary: #4f46e5;
-    --brand-primary-hover: #4338ca;
-    --brand-accent: #10b981;
-    --alert-warning: #f59e0b;
-    --alert-danger: #ef4444;
+    /* Backgrounds */
+    --bg:          #F7F6F3;
+    --bg-elevated: #FFFFFF;
+    --bg-subtle:   #EFEEEA;
+    --bg-overlay:  rgba(247,246,243,0.88);
+
+    /* Borders */
+    --border:        #E3E2DE;
+    --border-strong: #C9C8C3;
+
+    /* Foreground / Typography */
+    --fg:        #1A1917;
+    --fg-muted:  #6B6A65;
+    --fg-subtle: #9E9C96;
+
+    /* Accent — butter yellow */
+    --accent:        #E8D796;
+    --accent-hover:  #DFC878;
+    --accent-fg:     #3D3000;
+    --accent-subtle: #FEFAE8;
+
+    /* Semantic Status (muted, desaturated) */
+    --status-ok:   #5A8A5A;
+    --status-warn: #A07830;
+    --status-err:  #A04848;
+    --status-ok-bg:   #EEF6EE;
+    --status-warn-bg: #FBF3E5;
+    --status-err-bg:  #FAF0F0;
+
+    /* Dock Glass */
+    --dock-bg:     rgba(255,255,255,0.86);
+    --dock-border: rgba(0,0,0,0.08);
   }
 
   .dark {
-    --bg-main: #090d16;
-    --card-bg: #0f172a;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --border-color: #1e293b;
-    --brand-primary: #6366f1;
-    --brand-primary-hover: #4f46e5;
-    --brand-accent: #10b981;
-    --alert-warning: #f59e0b;
-    --alert-danger: #ef4444;
+    /* Backgrounds */
+    --bg:          #18181A;
+    --bg-elevated: #222224;
+    --bg-subtle:   #2A2A2C;
+    --bg-overlay:  rgba(24,24,26,0.88);
+
+    /* Borders */
+    --border:        #2E2E30;
+    --border-strong: #3E3E42;
+
+    /* Foreground */
+    --fg:        #EFEFED;
+    --fg-muted:  #8E8E93;
+    --fg-subtle: #5A5A60;
+
+    /* Accent — slightly deeper for dark legibility */
+    --accent:        #D4C06A;
+    --accent-hover:  #C4B058;
+    --accent-fg:     #1A1200;
+    --accent-subtle: #26210A;
+
+    /* Semantic Status */
+    --status-ok:   #4A9A5A;
+    --status-warn: #C09040;
+    --status-err:  #C05858;
+    --status-ok-bg:   #0E1F10;
+    --status-warn-bg: #1F1800;
+    --status-err-bg:  #1F0E0E;
+
+    /* Dock Glass */
+    --dock-bg:     rgba(34,34,36,0.90);
+    --dock-border: rgba(255,255,255,0.08);
+  }
+
+  /* ─── Base Styles ──────────────────────────────────────────────────── */
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background-color: var(--bg-main);
-    color: var(--text-primary);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
     min-height: 100vh;
-    transition: background-color 200ms ease, color 200ms ease;
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  /* Monospace for data — applied via font-mono class */
+  .font-mono,
+  [data-mono],
+  kbd,
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+  }
+
+  /* Hairline border utility */
+  * {
+    border-color: var(--border);
   }
 }
 
-/* Glassmorphism & Custom Card Utility Effects */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* ─── Dock Glass Effect ──────────────────────────────────────────────────── */
+.dock-glass {
+  background: var(--dock-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--dock-border);
 }
 
-.light .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
+/* ─── Scrollbar Styling ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg-subtle); }

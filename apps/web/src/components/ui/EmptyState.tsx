@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
-import { Camera, Sparkles, Store, Plus, Layers } from 'lucide-react';
+import { Camera, Sparkles, Store, Plus } from 'lucide-react';
 
 interface EmptyStateProps {
   type: 'no-devices' | 'no-insights' | 'day-one-shop';
@@ -21,55 +21,54 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   const configs = {
     'no-devices': {
       icon: Camera,
-      defaultTitle: 'No Edge Cameras Paired Yet',
-      defaultDesc: 'Pair your store SNPE vision nodes to start streaming live shopper footfall, queue SLA, and shelf heatmaps.',
-      defaultBtn: 'Pair Your First Camera',
-      btnIcon: Plus,
+      defaultTitle: 'No edge cameras paired yet',
+      defaultDesc: 'Pair your SNPE vision nodes to start streaming live shopper footfall, queue SLA, and shelf heatmaps.',
+      defaultBtn: 'Pair your first camera',
     },
     'no-insights': {
       icon: Sparkles,
-      defaultTitle: 'Awaiting AI Vision Insights',
-      defaultDesc: 'Our edge computer vision backbone generates plain-language insights automatically as shopper traffic is detected.',
-      defaultBtn: 'Refresh Telemetry',
-      btnIcon: Sparkles,
+      defaultTitle: 'Awaiting AI vision insights',
+      defaultDesc: 'Our edge vision backbone generates plain-language insights automatically as shopper traffic is detected.',
+      defaultBtn: 'Check edge devices',
     },
     'day-one-shop': {
       icon: Store,
-      defaultTitle: 'Welcome to Day One at RetinaRetail',
-      defaultDesc: 'Your store profile is active! Pair hardware cameras or configure your 2D Digital Twin floor plan to unlock live analytics.',
-      defaultBtn: 'Configure Store Map',
-      btnIcon: Layers,
+      defaultTitle: "Day one \u2014 let\u2019s get set up",
+      defaultDesc: 'Your store profile is active. Pair hardware cameras or configure your 2D floor plan to unlock live analytics.',
+      defaultBtn: 'Configure store map',
     },
   };
 
-  const config = configs[type];
-  const Icon = config.icon;
-  const BtnIcon = config.btnIcon;
+  const { icon: Icon, defaultTitle, defaultDesc, defaultBtn } = configs[type];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="p-10 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 space-y-4 max-w-lg mx-auto"
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="py-14 px-8 text-center rounded-[10px] max-w-md mx-auto space-y-4"
+      style={{ border: '1px dashed var(--border-strong)', background: 'var(--bg-elevated)' }}
     >
-      <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center mx-auto shadow-inner">
-        <Icon className="w-7 h-7" />
+      <div className="flex justify-center">
+        <Icon
+          className="w-8 h-8"
+          style={{ color: 'var(--fg-subtle)', opacity: 0.5 }}
+        />
       </div>
 
       <div className="space-y-1">
-        <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
-          {title || config.defaultTitle}
+        <h3 className="text-[14px] font-semibold" style={{ color: 'var(--fg)' }}>
+          {title || defaultTitle}
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          {description || config.defaultDesc}
+        <p className="text-[12px] leading-relaxed" style={{ color: 'var(--fg-muted)' }}>
+          {description || defaultDesc}
         </p>
       </div>
 
       {onAction && (
-        <Button onClick={onAction} variant="primary" size="sm" className="gap-2 bg-indigo-600 hover:bg-indigo-500 mt-2">
-          <BtnIcon className="w-4 h-4" />
-          <span>{actionLabel || config.defaultBtn}</span>
+        <Button onClick={onAction} variant="primary" size="sm" className="gap-1.5">
+          <Plus className="w-3.5 h-3.5" />
+          <span>{actionLabel || defaultBtn}</span>
         </Button>
       )}
     </motion.div>

@@ -8,13 +8,17 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, id, ...props }, ref) => {
+  ({ className, label, error, helperText, id, style, ...props }, ref) => {
     const inputId = id || props.name;
 
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+          <label
+            htmlFor={inputId}
+            className="block text-[11px] font-semibold uppercase tracking-widest"
+            style={{ color: 'var(--fg-muted)' }}
+          >
             {label}
           </label>
         )}
@@ -22,22 +26,36 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={clsx(
-            'w-full px-3.5 py-2.5 rounded-lg border text-sm transition-colors duration-150',
-            'bg-white dark:bg-slate-900/90 text-slate-900 dark:text-slate-100',
-            'placeholder:text-slate-400 dark:placeholder:text-slate-500',
-            'focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 dark:focus:border-indigo-400',
-            error
-              ? 'border-rose-500 focus:ring-rose-500/30 focus:border-rose-500'
-              : 'border-slate-300 dark:border-slate-800',
+            'w-full px-3 py-2.5 rounded-lg text-[13px] transition-colors duration-150 outline-none',
+            'focus:ring-1',
             className
           )}
+          style={{
+            background: 'var(--bg-elevated)',
+            color: 'var(--fg)',
+            border: `1px solid ${error ? 'var(--status-err)' : 'var(--border)'}`,
+            // Focus via CSS — ring-[var(--accent)] won't work as JIT arbitrary,
+            // so we override via a CSS custom property workaround
+            ...style,
+          }}
+          onFocus={e => {
+            e.currentTarget.style.borderColor = error ? 'var(--status-err)' : 'var(--accent)';
+            e.currentTarget.style.boxShadow = error
+              ? '0 0 0 2px var(--status-err-bg)'
+              : '0 0 0 2px var(--accent-subtle)';
+          }}
+          onBlur={e => {
+            e.currentTarget.style.borderColor = error ? 'var(--status-err)' : 'var(--border)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+          placeholder={props.placeholder}
           {...props}
         />
         {error && (
-          <p className="text-xs text-rose-500 dark:text-rose-400 font-medium">{error}</p>
+          <p className="text-[11px] font-medium" style={{ color: 'var(--status-err)' }}>{error}</p>
         )}
         {helperText && !error && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">{helperText}</p>
+          <p className="text-[11px]" style={{ color: 'var(--fg-subtle)' }}>{helperText}</p>
         )}
       </div>
     );
