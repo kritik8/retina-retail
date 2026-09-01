@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/features/auth/AuthContext';
 import { AuthGuard } from '@/features/auth/AuthGuard';
 import { LoginPage } from '@/features/auth/LoginPage';
@@ -16,45 +17,47 @@ import { SettingsPage } from '@/features/dashboard/settings/SettingsPage';
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Auth Route */}
-            <Route path="/login" element={<LoginPage />} />
+      <ThemeProvider defaultTheme="dark">
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Auth Route */}
+              <Route path="/login" element={<LoginPage />} />
 
-            {/* Protected Onboarding Route */}
-            <Route
-              path="/onboarding"
-              element={
-                <AuthGuard requireShop={false}>
-                  <OnboardingPage />
-                </AuthGuard>
-              }
-            />
+              {/* Protected Onboarding Route */}
+              <Route
+                path="/onboarding"
+                element={
+                  <AuthGuard requireShop={false}>
+                    <OnboardingPage />
+                  </AuthGuard>
+                }
+              />
 
-            {/* Protected Dashboard Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <AuthGuard requireShop={true}>
-                  <DashboardLayout />
-                </AuthGuard>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard/overview" replace />} />
-              <Route path="overview" element={<OverviewPage />} />
-              <Route path="shopper-analytics" element={<ShopperAnalyticsPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="queue-intelligence" element={<QueueIntelligencePage />} />
-              <Route path="devices" element={<DevicesPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
+              {/* Protected Dashboard Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <AuthGuard requireShop={true}>
+                    <DashboardLayout />
+                  </AuthGuard>
+                }
+              >
+                <Route index element={<Navigate to="/dashboard/overview" replace />} />
+                <Route path="overview" element={<OverviewPage />} />
+                <Route path="shopper-analytics" element={<ShopperAnalyticsPage />} />
+                <Route path="inventory" element={<InventoryPage />} />
+                <Route path="queue-intelligence" element={<QueueIntelligencePage />} />
+                <Route path="devices" element={<DevicesPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
 
-            {/* Default Catch-all Redirect */}
-            <Route path="*" element={<Navigate to="/dashboard/overview" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+              {/* Default Catch-all Redirect */}
+              <Route path="*" element={<Navigate to="/dashboard/overview" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
