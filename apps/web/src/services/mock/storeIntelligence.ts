@@ -7,6 +7,7 @@ import type {
   Recommendation,
   SimulationTimeSeriesPoint,
 } from '@/types';
+import { apiClient } from '@/services/api/client';
 
 // Simulated delay helper to mirror real network behavior
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,9 +15,18 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const mockIntelligenceService = {
   /**
    * Fetches current snapshot of store state metrics.
-   * Drop-in swappable with backend GET /api/intelligence/store-state
+   * Connects to live Python backend if online, else returns mock state.
    */
   async getStoreState(): Promise<StoreState> {
+    const isOnline = await apiClient.checkHealth();
+    if (isOnline) {
+      try {
+        return await apiClient.getStoreState();
+      } catch (err) {
+        console.warn('API getStoreState failed, using local store state fallback', err);
+      }
+    }
+
     await delay(120);
     return {
       occupancy: 42,
@@ -31,9 +41,18 @@ export const mockIntelligenceService = {
 
   /**
    * Fetches multi-step queue forecast and key drivers over a given horizon.
-   * Drop-in swappable with backend GET /api/intelligence/prediction?horizon={horizon}
+   * Connects to live Python backend if online, else returns mock prediction.
    */
   async getPrediction(horizonMinutes = 15): Promise<Prediction> {
+    const isOnline = await apiClient.checkHealth();
+    if (isOnline) {
+      try {
+        return await apiClient.getPrediction(horizonMinutes);
+      } catch (err) {
+        console.warn('API getPrediction failed, using local prediction fallback', err);
+      }
+    }
+
     await delay(150);
 
     // Current time base for labels
@@ -81,9 +100,18 @@ export const mockIntelligenceService = {
 
   /**
    * Fetches automated root-factor bottleneck diagnosis.
-   * Drop-in swappable with backend GET /api/intelligence/diagnosis
+   * Connects to live Python backend if online, else returns mock diagnosis.
    */
   async getDiagnosis(): Promise<BottleneckDiagnosis> {
+    const isOnline = await apiClient.checkHealth();
+    if (isOnline) {
+      try {
+        return await apiClient.getDiagnosis();
+      } catch (err) {
+        console.warn('API getDiagnosis failed, using local diagnosis fallback', err);
+      }
+    }
+
     await delay(160);
     return {
       primaryBottleneck: 'checkout',
@@ -148,9 +176,18 @@ export const mockIntelligenceService = {
 
   /**
    * Runs what-if counter / routing simulation.
-   * Drop-in swappable with backend POST /api/intelligence/simulate
+   * Connects to live Python backend if online, else returns mock simulation.
    */
   async runSimulation(req: SimulationRequest): Promise<SimulationResult> {
+    const isOnline = await apiClient.checkHealth();
+    if (isOnline) {
+      try {
+        return await apiClient.runSimulation(req);
+      } catch (err) {
+        console.warn('API runSimulation failed, using local simulation fallback', err);
+      }
+    }
+
     await delay(200);
 
     const baseCapacity = 3.1;
@@ -187,13 +224,11 @@ export const mockIntelligenceService = {
     // Generate minute-by-minute time series from t=0 to t=15
     const times = [0, 2, 4, 6, 8, 10, 12, 15];
     const baselineSeries: SimulationTimeSeriesPoint[] = times.map((t) => {
-      // Baseline grows quickly up to 28
       const val = Math.min(30, Math.round(8 + (t / 15) * 20));
       return { t, value: val };
     });
 
     const simulationSeries: SimulationTimeSeriesPoint[] = times.map((t) => {
-      // Simulation curves down after initial reaction time (at ~2 min)
       let val = 8;
       if (t === 2) val = 9;
       else if (t === 4) val = peakSim;

@@ -95,23 +95,28 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
           <div className="p-5 space-y-5 flex-1">
             {/* Live Vision Feed Box */}
             <div
-              className="relative w-full h-44 rounded-lg overflow-hidden flex flex-col justify-between p-3 select-none"
-              style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+              className="relative w-full h-52 rounded-lg overflow-hidden flex flex-col justify-between select-none group"
+              style={{ background: '#000000', border: '1px solid var(--border)' }}
             >
-              {/* Top Overlay Bar */}
-              <div className="flex items-center justify-between z-10 font-mono text-[10px]">
-                <span
-                  className="px-2 py-0.5 rounded font-semibold uppercase tracking-wider flex items-center gap-1"
-                  style={{ background: 'var(--status-err-bg)', color: 'var(--status-err)', border: '1px solid var(--status-err-border)' }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--status-err)' }} />
-                  LIVE OPTICS
-                </span>
-                <span style={{ color: 'var(--fg-subtle)' }}>1080p @ 30 FPS</span>
-              </div>
+              {/* Real-time MJPEG Video Element */}
+              <img
+                src={`http://localhost:8000/api/stream/${device.id || 'cam-1'}`}
+                alt="Live Camera Feed"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => {
+                  // If backend stream is offline, hide broken img and show fallback canvas
+                  e.currentTarget.style.display = 'none';
+                  const fallback = document.getElementById('camera-fallback-overlay');
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
 
-              {/* Bounding Box Mock Overlay Target */}
-              <div className="relative inset-0 flex items-center justify-center pointer-events-none">
+              {/* Fallback Display if Backend stream is offline */}
+              <div
+                id="camera-fallback-overlay"
+                className="absolute inset-0 hidden flex-col items-center justify-center p-4"
+                style={{ background: 'var(--bg)' }}
+              >
                 <div
                   className="w-28 h-16 rounded-md relative flex items-start p-1"
                   style={{ border: '1.5px dashed var(--status-ok)', background: 'var(--status-ok-bg)' }}
@@ -120,14 +125,31 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
                     Shopper #104 (98%)
                   </span>
                 </div>
+                <span className="font-mono text-[10px] mt-2" style={{ color: 'var(--fg-subtle)' }}>
+                  Awaiting backend stream / fallback simulation
+                </span>
+              </div>
+
+              {/* Top Overlay Bar */}
+              <div className="flex items-center justify-between z-10 font-mono text-[10px] p-3">
+                <span
+                  className="px-2 py-0.5 rounded font-semibold uppercase tracking-wider flex items-center gap-1 backdrop-blur-md"
+                  style={{ background: 'var(--status-err-bg)', color: 'var(--status-err)', border: '1px solid var(--status-err-border)' }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--status-err)' }} />
+                  LIVE OPTICS
+                </span>
+                <span className="px-2 py-0.5 rounded backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.6)', color: '#EDEDE9' }}>
+                  YOLOv8 + ByteTrack
+                </span>
               </div>
 
               {/* Bottom Telemetry Overlay */}
               <div
-                className="flex items-center justify-between font-mono text-[10px] px-2.5 py-1 rounded-md"
-                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
+                className="flex items-center justify-between font-mono text-[10px] px-2.5 py-1.5 m-2 rounded-md z-10 backdrop-blur-md"
+                style={{ background: 'rgba(25,25,26,0.85)', border: '1px solid var(--border)', color: '#EDEDE9' }}
               >
-                <span>VisionBackbone-v2</span>
+                <span>VisionBackbone-v2 · {device.pairing_code}</span>
                 <span style={{ color: 'var(--status-ok)' }}>14.2ms Latency</span>
               </div>
             </div>
