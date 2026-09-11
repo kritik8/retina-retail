@@ -16,6 +16,9 @@ import {
   Sun,
   LogOut,
   ArrowRight,
+  TrendingUp,
+  AlertOctagon,
+  FlaskConical,
 } from 'lucide-react';
 
 interface CommandPaletteProps {
@@ -27,7 +30,7 @@ interface CommandItem {
   id: string;
   title: string;
   category: 'Navigation' | 'Actions';
-  icon: React.FC<{ className?: string; style?: React.CSSProperties }>;
+  icon: React.ElementType;
   shortcut?: string;
   action: () => void;
 }
@@ -41,13 +44,116 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const commands: CommandItem[] = [
-    { id: 'nav-overview',   title: 'Overview',              category: 'Navigation', icon: LayoutDashboard, shortcut: 'G O', action: () => { navigate('/dashboard/overview'); onClose(); } },
-    { id: 'nav-store-map',  title: 'Store Digital Twin',    category: 'Navigation', icon: Layers,          shortcut: 'G M', action: () => { navigate('/dashboard/store-map'); onClose(); } },
-    { id: 'nav-analytics',  title: 'Shopper Analytics',     category: 'Navigation', icon: Users,           shortcut: 'G A', action: () => { navigate('/dashboard/shopper-analytics'); onClose(); } },
-    { id: 'nav-inventory',  title: 'Inventory',             category: 'Navigation', icon: Package,         shortcut: 'G I', action: () => { navigate('/dashboard/inventory'); onClose(); } },
-    { id: 'nav-queue',      title: 'Queue Intelligence',    category: 'Navigation', icon: Clock,           shortcut: 'G Q', action: () => { navigate('/dashboard/queue-intelligence'); onClose(); } },
-    { id: 'nav-devices',    title: 'Edge Devices',          category: 'Navigation', icon: Camera,          shortcut: 'G D', action: () => { navigate('/dashboard/devices'); onClose(); } },
-    { id: 'nav-settings',   title: 'Settings',              category: 'Navigation', icon: Settings,        shortcut: 'G S', action: () => { navigate('/dashboard/settings'); onClose(); } },
+    {
+      id: 'nav-overview',
+      title: 'Overview Dashboard',
+      category: 'Navigation',
+      icon: LayoutDashboard,
+      shortcut: 'G O',
+      action: () => {
+        navigate('/dashboard/overview');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-store-map',
+      title: 'Store Digital Twin & Live Map',
+      category: 'Navigation',
+      icon: Layers,
+      shortcut: 'G M',
+      action: () => {
+        navigate('/dashboard/store-map');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-predictive',
+      title: 'Predictive Store Intelligence',
+      category: 'Navigation',
+      icon: TrendingUp,
+      shortcut: 'G P',
+      action: () => {
+        navigate('/dashboard/predictive-intelligence');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-bottleneck',
+      title: 'Automated Bottleneck Diagnosis',
+      category: 'Navigation',
+      icon: AlertOctagon,
+      shortcut: 'G B',
+      action: () => {
+        navigate('/dashboard/bottleneck-diagnosis');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-simulator',
+      title: 'What-If Store Simulator',
+      category: 'Navigation',
+      icon: FlaskConical,
+      shortcut: 'G W',
+      action: () => {
+        navigate('/dashboard/what-if-simulator');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-analytics',
+      title: 'Shopper Analytics',
+      category: 'Navigation',
+      icon: Users,
+      shortcut: 'G A',
+      action: () => {
+        navigate('/dashboard/shopper-analytics');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-inventory',
+      title: 'Inventory & Shelf Monitoring',
+      category: 'Navigation',
+      icon: Package,
+      shortcut: 'G I',
+      action: () => {
+        navigate('/dashboard/inventory');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-queue',
+      title: 'Queue Intelligence',
+      category: 'Navigation',
+      icon: Clock,
+      shortcut: 'G Q',
+      action: () => {
+        navigate('/dashboard/queue-intelligence');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-devices',
+      title: 'Edge Vision Devices',
+      category: 'Navigation',
+      icon: Camera,
+      shortcut: 'G D',
+      action: () => {
+        navigate('/dashboard/devices');
+        onClose();
+      },
+    },
+    {
+      id: 'nav-settings',
+      title: 'Store Settings',
+      category: 'Navigation',
+      icon: Settings,
+      shortcut: 'G S',
+      action: () => {
+        navigate('/dashboard/settings');
+        onClose();
+      },
+    },
     {
       id: 'action-theme',
       title: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',

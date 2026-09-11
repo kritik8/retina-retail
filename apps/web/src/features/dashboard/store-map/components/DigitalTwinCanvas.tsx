@@ -8,12 +8,16 @@ interface DigitalTwinCanvasProps {
   selectedZoneId: string | null;
   onSelectZone: (zoneId: string) => void;
   isEditMode?: boolean;
+  highlightZoneId?: string | null;
+  heightClass?: string;
 }
 
 export const DigitalTwinCanvas: React.FC<DigitalTwinCanvasProps> = ({
   zones,
   selectedZoneId,
   onSelectZone,
+  highlightZoneId,
+  heightClass = 'h-[540px]',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -149,7 +153,7 @@ export const DigitalTwinCanvas: React.FC<DigitalTwinCanvasProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[520px] rounded-[10px] overflow-hidden select-none"
+      className={`relative w-full ${heightClass} rounded-[10px] overflow-hidden select-none`}
       style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
     >
       {/* Grid Pattern Layer */}
@@ -168,6 +172,7 @@ export const DigitalTwinCanvas: React.FC<DigitalTwinCanvasProps> = ({
       <div className="absolute inset-0 z-20">
         {zones.map((zone) => {
           const isSelected = selectedZoneId === zone.id;
+          const isHighlighted = highlightZoneId === zone.id;
           const density = zone.density || 30;
           const hasCamera = Boolean(zone.cameraId);
 
@@ -180,11 +185,21 @@ export const DigitalTwinCanvas: React.FC<DigitalTwinCanvasProps> = ({
                 top: `${zone.y}%`,
                 width: `${zone.width}%`,
                 height: `${zone.height}%`,
-                background: isSelected ? 'var(--accent-subtle)' : 'var(--bg)',
-                borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
-                borderWidth: '1px',
+                background: isHighlighted
+                  ? 'var(--status-err-bg)'
+                  : isSelected
+                  ? 'var(--accent-subtle)'
+                  : 'var(--bg)',
+                borderColor: isHighlighted
+                  ? 'var(--status-err)'
+                  : isSelected
+                  ? 'var(--accent)'
+                  : 'var(--border)',
+                borderWidth: isHighlighted || isSelected ? '2px' : '1px',
               }}
-              className="absolute rounded-lg p-3 cursor-pointer backdrop-blur-xs transition-all duration-150 flex flex-col justify-between group"
+              className={`absolute rounded-lg p-3 cursor-pointer backdrop-blur-xs transition-all duration-150 flex flex-col justify-between group ${
+                isHighlighted ? 'animate-pulse' : ''
+              }`}
             >
               {/* Header */}
               <div className="flex items-center justify-between gap-1">

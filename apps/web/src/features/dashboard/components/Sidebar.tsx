@@ -3,6 +3,9 @@ import React from 'react';
 // Legacy Sidebar kept for exports compatibility if needed
 export const navItems = [
   { path: '/dashboard/overview', label: 'Overview' },
+  { path: '/dashboard/predictive-intelligence', label: 'Predictive Intelligence' },
+  { path: '/dashboard/bottleneck-diagnosis', label: 'Bottleneck Diagnosis' },
+  { path: '/dashboard/what-if-simulator', label: 'What-If Simulator' },
   { path: '/dashboard/store-map', label: 'Store Map' },
   { path: '/dashboard/shopper-analytics', label: 'Shoppers' },
   { path: '/dashboard/inventory', label: 'Inventory' },

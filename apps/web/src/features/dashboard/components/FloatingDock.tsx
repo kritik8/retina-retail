@@ -11,19 +11,25 @@ import {
   Settings,
   Sun,
   Moon,
+  TrendingUp,
+  AlertOctagon,
+  FlaskConical,
 } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 import { useAuth } from '@/features/auth/useAuth';
 
 // ─── Nav Items ────────────────────────────────────────────────────────────────
 export const navItems = [
-  { path: '/dashboard/overview',           label: 'Overview',         icon: LayoutDashboard },
-  { path: '/dashboard/shopper-analytics',  label: 'Shoppers',         icon: Users },
-  { path: '/dashboard/inventory',          label: 'Inventory',        icon: Package },
-  { path: '/dashboard/queue-intelligence', label: 'Queue',            icon: Clock },
-  { path: '/dashboard/devices',            label: 'Devices',          icon: Camera },
-  { path: '/dashboard/store-map',          label: 'Store Map',        icon: Layers },
-  { path: '/dashboard/settings',           label: 'Settings',         icon: Settings },
+  { path: '/dashboard/overview',                label: 'Overview',                icon: LayoutDashboard },
+  { path: '/dashboard/predictive-intelligence', label: 'Predictive Intelligence', icon: TrendingUp },
+  { path: '/dashboard/bottleneck-diagnosis',    label: 'Bottleneck Diagnosis',    icon: AlertOctagon },
+  { path: '/dashboard/what-if-simulator',       label: 'What-If Simulator',       icon: FlaskConical },
+  { path: '/dashboard/shopper-analytics',       label: 'Shoppers',                icon: Users },
+  { path: '/dashboard/inventory',               label: 'Inventory',               icon: Package },
+  { path: '/dashboard/queue-intelligence',      label: 'Queue',                   icon: Clock },
+  { path: '/dashboard/devices',                 label: 'Devices',                 icon: Camera },
+  { path: '/dashboard/store-map',               label: 'Store Map',               icon: Layers },
+  { path: '/dashboard/settings',                label: 'Settings',                icon: Settings },
 ];
 
 // ─── Divider ──────────────────────────────────────────────────────────────────
@@ -36,7 +42,7 @@ const Divider = () => (
 
 // ─── Single dock button ───────────────────────────────────────────────────────
 interface DockButtonProps {
-  icon: React.FC<{ className?: string; style?: React.CSSProperties }>;
+  icon: React.ElementType;
   label: string;
   isActive?: boolean;
   onClick: () => void;
@@ -92,17 +98,20 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
       user?.user_metadata?.full_name || 'U'
     )}&background=D4A84B&color=2A1E00&bold=true&length=1`;
 
+  const mainNavItems = navItems.filter((item) => item.path !== '/dashboard/settings');
+  const settingsItem = navItems.find((item) => item.path === '/dashboard/settings');
+
   return (
     <div
       className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50"
       style={{ maxWidth: '96vw' }}
     >
       <div
-        className="dock-glass flex items-center gap-0.5 px-2 py-2 rounded-full shadow-lg shadow-black/10"
+        className="dock-glass flex items-center gap-0.5 px-2 py-2 rounded-full shadow-lg shadow-black/10 overflow-x-auto max-w-[95vw]"
         style={{ height: '52px' }}
       >
         {/* ── Primary Nav Items ───────────────────────────── */}
-        {navItems.slice(0, 6).map((item) => (
+        {mainNavItems.map((item) => (
           <DockButton
             key={item.path}
             icon={item.icon}
@@ -116,12 +125,14 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
         <Divider />
 
         {/* Settings */}
-        <DockButton
-          icon={navItems[6].icon}
-          label={navItems[6].label}
-          isActive={location.pathname === navItems[6].path}
-          onClick={() => navigate(navItems[6].path)}
-        />
+        {settingsItem && (
+          <DockButton
+            icon={settingsItem.icon}
+            label={settingsItem.label}
+            isActive={location.pathname === settingsItem.path}
+            onClick={() => navigate(settingsItem.path)}
+          />
+        )}
 
         {/* Divider before utilities */}
         <Divider />

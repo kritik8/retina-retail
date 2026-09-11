@@ -14,6 +14,9 @@ import { InventoryPage } from '@/features/dashboard/inventory/InventoryPage';
 import { QueueIntelligencePage } from '@/features/dashboard/queue-intelligence/QueueIntelligencePage';
 import { DevicesPage } from '@/features/dashboard/devices/DevicesPage';
 import { SettingsPage } from '@/features/dashboard/settings/SettingsPage';
+import { PredictiveIntelligencePage } from '@/features/dashboard/predictive-intelligence/PredictiveIntelligencePage';
+import { BottleneckDiagnosisPage } from '@/features/dashboard/bottleneck-diagnosis/BottleneckDiagnosisPage';
+import { WhatIfSimulatorPage } from '@/features/dashboard/what-if-simulator/WhatIfSimulatorPage';
 
 export default function App() {
   return (
@@ -47,6 +50,9 @@ export default function App() {
                 <Route index element={<Navigate to="/dashboard/overview" replace />} />
                 <Route path="overview" element={<OverviewPage />} />
                 <Route path="store-map" element={<StoreMapPage />} />
+                <Route path="predictive-intelligence" element={<PredictiveIntelligencePage />} />
+                <Route path="bottleneck-diagnosis" element={<BottleneckDiagnosisPage />} />
+                <Route path="what-if-simulator" element={<WhatIfSimulatorPage />} />
                 <Route path="shopper-analytics" element={<ShopperAnalyticsPage />} />
                 <Route path="inventory" element={<InventoryPage />} />
                 <Route path="queue-intelligence" element={<QueueIntelligencePage />} />

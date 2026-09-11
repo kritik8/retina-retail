@@ -91,6 +91,15 @@ export const TopBar: React.FC<TopBarProps> = ({
       {/* Right Controls */}
       <div className="flex items-center gap-2">
         <button
+          onClick={() => navigate('/dashboard/settings')}
+          className="p-1.5 rounded-lg transition-colors duration-150"
+          style={{ color: 'var(--fg-subtle)' }}
+          title="Store Settings & Configuration"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+
+        <button
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
           className="p-1.5 rounded-lg transition-colors duration-150"
           style={{ color: 'var(--fg-subtle)' }}

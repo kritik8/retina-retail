@@ -85,3 +85,90 @@ export interface UserSession {
   shop: Shop | null;
   isLoading: boolean;
 }
+
+export type CongestionRiskLevel = 'NORMAL' | 'MODERATE' | 'HIGH' | 'CRITICAL';
+
+export interface StoreState {
+  occupancy: number;
+  queueLength: number;
+  incomingRate: number;
+  outgoingRate: number;
+  serviceRate: number;
+  density: number;
+  congestionRisk: CongestionRiskLevel;
+}
+
+export interface PredictionDriver {
+  label: string;
+  changePercent?: number;
+  changeAbsolute?: number;
+}
+
+export interface Prediction {
+  horizonMinutes: number;
+  predictedQueue: number;
+  risk: CongestionRiskLevel;
+  timeToThreshold: number;
+  reliability: 'High' | 'Moderate' | 'Low';
+  drivers: PredictionDriver[];
+  historicalSeries: { t: string; value: number }[];
+  forecastSeries: { t: string; value: number; upperBand: number; lowerBand: number }[];
+}
+
+export interface BottleneckDiagnosis {
+  primaryBottleneck: 'checkout' | 'entrance' | 'aisle' | 'zone' | 'flow_imbalance';
+  bottleneckZoneId?: string;
+  bottleneckZoneName?: string;
+  severity: CongestionRiskLevel;
+  arrivalRate: number;
+  serviceRate: number;
+  imbalance: number;
+  contributingFactors: { label: string; score: number; detail: string }[];
+  timeline: { time: string; status: string; description: string; risk: CongestionRiskLevel }[];
+  recommendation: string;
+}
+
+export interface SimulationRequest {
+  interventionType: 'add_checkout' | 'increase_staffing' | 'redirect_checkout' | 'redirect_traffic';
+  additionalCounters?: 1 | 2 | 3;
+}
+
+export interface SimulationTimeSeriesPoint {
+  t: number; // minutes from now (0, 2, 5, 7, 10, 15, etc.)
+  value: number; // queue length
+}
+
+export interface SimulationResult {
+  baseline: {
+    peakQueue: number;
+    timeSeries: SimulationTimeSeriesPoint[];
+  };
+  simulation: {
+    peakQueue: number;
+    timeSeries: SimulationTimeSeriesPoint[];
+  };
+  queueReductionPercent: number;
+  thresholdAvoided: boolean;
+  timeToThreshold?: number;
+  additionalCounters?: number;
+  baseCapacity: number;
+  simulatedCapacity: number;
+}
+
+export interface Recommendation {
+  action: string;
+  rationale: string;
+  interventionType: SimulationRequest['interventionType'];
+  suggestedCounters?: 1 | 2 | 3;
+}
+
+export interface InterventionLogEntry {
+  id: string;
+  timestamp: string;
+  action: string;
+  rationale: string;
+  interventionType: string;
+  details?: Record<string, any>;
+  status: 'logged';
+}
+

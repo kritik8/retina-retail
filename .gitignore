@@ -39,3 +39,30 @@ Thumbs.db
 # Coverage directory
 coverage
 *.lcov
+
+# CCTV Footage & Video Assets (Large media files)
+/cctv-footage
+/cctv-footage/*
+/CCTV Footage
+/CCTV Footage/*
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# YOLO / Ultralytics Model Weights
+*.pt
+*.onnx
+*.engine
+*.tflite
+yolov8*.pt
+yolo11*.pt
+
+# Python Backend & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+backend/__pycache__/
+backend/venv/
+.venv/
+env/

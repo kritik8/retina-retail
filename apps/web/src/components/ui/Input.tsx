@@ -34,8 +34,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             background: 'var(--bg-elevated)',
             color: 'var(--fg)',
             border: `1px solid ${error ? 'var(--status-err)' : 'var(--border)'}`,
-            // Focus via CSS — ring-[var(--accent)] won't work as JIT arbitrary,
-            // so we override via a CSS custom property workaround
             ...style,
           }}
           onFocus={e => {

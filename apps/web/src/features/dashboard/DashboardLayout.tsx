@@ -7,13 +7,16 @@ import { useAuth } from '@/features/auth/useAuth';
 import { Search } from 'lucide-react';
 
 const pageLabels: Record<string, string> = {
-  '/dashboard/overview':           'Overview',
-  '/dashboard/store-map':          'Store Digital Twin',
-  '/dashboard/shopper-analytics':  'Shopper Analytics',
-  '/dashboard/inventory':          'Inventory',
-  '/dashboard/queue-intelligence': 'Queue Intelligence',
-  '/dashboard/devices':            'Edge Devices',
-  '/dashboard/settings':           'Settings',
+  '/dashboard/overview':                'Overview',
+  '/dashboard/predictive-intelligence': 'Predictive Store Intelligence',
+  '/dashboard/bottleneck-diagnosis':    'Automated Bottleneck Diagnosis',
+  '/dashboard/what-if-simulator':       'What-If Store Simulator',
+  '/dashboard/store-map':               'Store Digital Twin',
+  '/dashboard/shopper-analytics':       'Shopper Analytics',
+  '/dashboard/inventory':               'Inventory',
+  '/dashboard/queue-intelligence':      'Queue Intelligence',
+  '/dashboard/devices':                 'Edge Devices',
+  '/dashboard/settings':                'Settings',
 };
 
 export const DashboardLayout: React.FC = () => {

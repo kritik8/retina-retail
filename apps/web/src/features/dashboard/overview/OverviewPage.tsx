@@ -7,6 +7,7 @@ import { HealthGauge } from './components/HealthGauge';
 import { FootfallChart } from './components/FootfallChart';
 import { QueueBarChart } from './components/QueueBarChart';
 import { InsightFeed } from './components/InsightFeed';
+import { ActionCenterWidget } from './components/ActionCenterWidget';
 import { Card, CardContent } from '@/components/ui/Card';
 import { OverviewSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -195,6 +196,9 @@ export const OverviewPage: React.FC = () => {
           </Card>
         </motion.div>
       </motion.div>
+
+      {/* ACTION CENTER — Congestion Prediction & Simulation Quick Action */}
+      <ActionCenterWidget />
 
       {/* Store Health Index Gauge */}
       <HealthGauge
