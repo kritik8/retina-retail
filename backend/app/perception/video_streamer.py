@@ -32,22 +32,32 @@ class CameraStreamer:
         self._init_capture()
 
     def _init_capture(self):
-        if self.video_path and self.video_path.exists():
+        if self.config.stream_url:
+            logger.info(f"Opening live network/ESP32 stream for {self.camera_id} from {self.config.stream_url}")
+            self.cap = cv2.VideoCapture(self.config.stream_url)
+        elif self.video_path and self.video_path.exists():
             logger.info(f"Opening CCTV stream for {self.camera_id} from {self.video_path}")
             self.cap = cv2.VideoCapture(str(self.video_path))
         else:
-            logger.warning(f"No video file found for {self.camera_id}. Running synthetic optical generator.")
+            logger.warning(f"No video file or stream URL found for {self.camera_id}. Running synthetic optical generator.")
             self.cap = None
 
     def get_frame(self) -> np.ndarray:
-        """Reads next frame with auto-looping for seamless live CCTV stream."""
+        """Reads next frame with auto-looping for files and auto-reconnect for live streams."""
         if self.cap is not None and self.cap.isOpened():
             ret, frame = self.cap.read()
             if not ret:
-                # Loop back to beginning of CCTV clip
-                self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                ret, frame = self.cap.read()
-            if ret:
+                if self.config.stream_url:
+                    # Live network stream disconnected, attempt reconnect
+                    self.cap.release()
+                    time.sleep(0.5)
+                    self.cap = cv2.VideoCapture(self.config.stream_url)
+                    ret, frame = self.cap.read()
+                else:
+                    # Loop back to beginning of CCTV clip
+                    self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    ret, frame = self.cap.read()
+            if ret and frame is not None and frame.size > 0:
                 return frame
 
         # Fallback synthetic frame with dark retail ambient look
