@@ -87,13 +87,13 @@ export function generateMockOverviewData(): OverviewTelemetry {
     { counter: 'Pharmacy POS 4', waitTimeMins: parseFloat((1.2 + Math.random() * 0.3).toFixed(1)), queueLength: 1, status: 'optimal' },
   ];
 
-  // Devices
+  // Devices — all 5 cameras online, named to match actual CCTV footage (beauty/cosmetics store)
   const devicesList: DeviceStatusItem[] = [
-    { id: 'cam-01', name: 'Main Entrance Optics #1', type: 'camera', status: 'online', fps: 30, lastHeartbeat: '2s ago' },
-    { id: 'cam-02', name: 'Aisle A3 Rice & Grains', type: 'camera', status: 'online', fps: 28, lastHeartbeat: '4s ago' },
-    { id: 'cam-03', name: 'Checkout POS Queue Sensor', type: 'camera', status: 'online', fps: 30, lastHeartbeat: '1s ago' },
-    { id: 'cam-04', name: 'Backroom Inventory Gateway', type: 'camera', status: 'online', fps: 25, lastHeartbeat: '5s ago' },
-    { id: 'cam-05', name: 'Side Exit Pedestrian Sensor', type: 'sensor', status: 'offline', fps: 0, lastHeartbeat: '14m ago' },
+    { id: 'cam-01', name: 'Beauty & Skincare Section',    type: 'camera', status: 'online', fps: 30, lastHeartbeat: '2s ago' },
+    { id: 'cam-02', name: 'Main Entrance',                type: 'camera', status: 'online', fps: 28, lastHeartbeat: '4s ago' },
+    { id: 'cam-03', name: 'Accessories & Display Wall',   type: 'camera', status: 'online', fps: 30, lastHeartbeat: '1s ago' },
+    { id: 'cam-04', name: 'Checkout Counter',             type: 'camera', status: 'online', fps: 30, lastHeartbeat: '5s ago' },
+    { id: 'cam-05', name: 'Fragrance & Gifting Aisle',   type: 'camera', status: 'online', fps: 27, lastHeartbeat: '3s ago' },
   ];
 
   const devicesOnline = devicesList.filter((d) => d.status === 'online').length;
@@ -122,16 +122,16 @@ export function generateMockOverviewData(): OverviewTelemetry {
     {
       id: 'ins-1',
       type: 'warning',
-      title: 'Queue Bottleneck Detected',
-      detail: 'Main Checkout 2 queue has exceeded 5.0 min wait time threshold for the last 12 minutes. Recommend opening Counter 4.',
+      title: 'Queue Bottleneck at Checkout',
+      detail: 'Checkout Counter camera detects queue exceeding 5-min wait. Consider calling additional staff to assist.',
       timestamp: 'Just now',
       severity: 'high',
     },
     {
       id: 'ins-2',
       type: 'inventory',
-      title: 'Shelf Stock Out Alert',
-      detail: 'Shelf A3 (Rice & Grains) stock level dropped below 15%. Optical camera confidence: 94%.',
+      title: 'Low Stock Alert — Skincare Section',
+      detail: 'Beauty & Skincare Section camera sees shelf gaps. Optical confidence: 94%. Restock recommended.',
       timestamp: '8m ago',
       severity: 'medium',
     },
@@ -139,17 +139,17 @@ export function generateMockOverviewData(): OverviewTelemetry {
       id: 'ins-3',
       type: 'trend',
       title: 'Peak Footfall Velocity',
-      detail: 'Store shopper footfall is 18.4% higher than the 7-day average for Tuesday afternoon.',
+      detail: 'Store shopper count is 18.4% above the 7-day average for this time of day.',
       timestamp: '22m ago',
       severity: 'info',
     },
     {
       id: 'ins-4',
-      type: 'device',
-      title: 'Edge Node Sensor Heartbeat Timeout',
-      detail: 'Side Exit Pedestrian Sensor (#cam-05) offline for 14 minutes. Re-establishing mesh link.',
-      timestamp: '35m ago',
-      severity: 'medium',
+      type: 'trend',
+      title: 'High Dwell at Accessories Wall',
+      detail: 'Accessories & Display Wall camera shows 65s average dwell — shoppers are engaging well with display products.',
+      timestamp: '30m ago',
+      severity: 'info',
     },
   ];
 

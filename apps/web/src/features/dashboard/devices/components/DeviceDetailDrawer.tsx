@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Device } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { API_BASE_URL } from '@/services/api/client';
 import {
   Camera,
   X,
@@ -27,7 +28,27 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
 }) => {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedZone, setSelectedZone] = useState('Main Entrance & Pedestrian Portal');
+
+  // Map device id to the camera stream id (cam-1..cam-5)
+  const DEVICE_TO_CAM: Record<string, string> = {
+    'cam-1': 'cam-1', 'cam-2': 'cam-2', 'cam-3': 'cam-3', 'cam-4': 'cam-4', 'cam-5': 'cam-5',
+    // legacy ids
+    'dev-01': 'cam-1', 'dev-02': 'cam-2', 'dev-03': 'cam-4', 'dev-04': 'cam-5', 'dev-05': 'cam-5',
+  };
+
+  // Default zone based on camera name
+  const getDefaultZone = (name: string) => {
+    if (/beauty|skin/i.test(name))       return 'Zone A — Beauty & Skincare Section';
+    if (/entrance/i.test(name))          return 'Zone B — Main Entrance';
+    if (/accessor/i.test(name))          return 'Zone C — Accessories & Display Wall';
+    if (/checkout/i.test(name))          return 'Zone D — Checkout Counter';
+    if (/fragran|gift/i.test(name))      return 'Zone E — Fragrance & Gifting Aisle';
+    return 'Zone A — Beauty & Skincare Section';
+  };
+
+  const [selectedZone, setSelectedZone] = useState(
+    device ? getDefaultZone(device.device_name) : 'Zone A — Beauty & Skincare Section'
+  );
 
   if (!device) return null;
 
@@ -100,7 +121,7 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
             >
               {/* Real-time MJPEG Video Element */}
               <img
-                src={`http://localhost:8000/api/stream/${device.id || 'cam-1'}`}
+                src={`${API_BASE_URL}/api/stream/${DEVICE_TO_CAM[device.id] || 'cam-1'}`}
                 alt="Live Camera Feed"
                 className="absolute inset-0 w-full h-full object-cover"
                 onError={(e) => {
@@ -218,10 +239,11 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
                 className="w-full px-3 py-2 rounded-lg text-xs outline-none"
                 style={{ background: 'var(--bg)', color: 'var(--fg)', border: '1px solid var(--border)' }}
               >
-                <option value="Main Entrance & Pedestrian Portal">Main Entrance & Pedestrian Portal</option>
-                <option value="Aisle 1: Rice, Grains & Staples">Aisle 1: Rice, Grains & Staples</option>
-                <option value="Aisle 2: Snacks & Beverages">Aisle 2: Snacks & Beverages</option>
-                <option value="POS Express & Main Checkout Zone">POS Express & Main Checkout Zone</option>
+                <option value="Zone A — Beauty & Skincare Section">Zone A — Beauty &amp; Skincare Section</option>
+                <option value="Zone B — Main Entrance">Zone B — Main Entrance</option>
+                <option value="Zone C — Accessories & Display Wall">Zone C — Accessories &amp; Display Wall</option>
+                <option value="Zone D — Checkout Counter">Zone D — Checkout Counter</option>
+                <option value="Zone E — Fragrance & Gifting Aisle">Zone E — Fragrance &amp; Gifting Aisle</option>
               </select>
             </div>
           </div>

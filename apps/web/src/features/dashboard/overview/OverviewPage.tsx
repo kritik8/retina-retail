@@ -7,7 +7,6 @@ import { HealthGauge } from './components/HealthGauge';
 import { FootfallChart } from './components/FootfallChart';
 import { QueueBarChart } from './components/QueueBarChart';
 import { InsightFeed } from './components/InsightFeed';
-import { ActionCenterWidget } from './components/ActionCenterWidget';
 import { Card, CardContent } from '@/components/ui/Card';
 import { OverviewSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -21,6 +20,8 @@ import {
   AlertTriangle,
   ArrowRight,
   RefreshCw,
+  Video,
+  Info,
 } from 'lucide-react';
 
 const containerVariants: Variants = {
@@ -32,6 +33,17 @@ const cardVariants: Variants = {
   hidden: { opacity: 0, y: 8 },
   show: { opacity: 1, y: 0, transition: { duration: 0.18, ease: 'easeOut' } },
 };
+
+// Small explanatory caption component
+const Caption: React.FC<{ text: string }> = ({ text }) => (
+  <div
+    className="flex items-start gap-2 p-2.5 rounded-lg text-[11px] leading-relaxed"
+    style={{ background: 'var(--bg-subtle)', color: 'var(--fg-muted)', border: '1px solid var(--border)' }}
+  >
+    <Info className="w-3 h-3 shrink-0 mt-0.5" style={{ color: 'var(--fg-subtle)' }} />
+    <span>{text}</span>
+  </div>
+);
 
 export const OverviewPage: React.FC = () => {
   const { data, isLoading, isFetching } = useOverviewData();
@@ -66,9 +78,26 @@ export const OverviewPage: React.FC = () => {
             {shop?.shop_name} · live telemetry stream
           </p>
         </div>
+
+        {/* Live Monitor shortcut */}
+        <button
+          onClick={() => navigate('/dashboard/live-monitor')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
+          style={{
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            color: 'var(--fg-muted)',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-strong)')}
+          onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+        >
+          <Video className="w-3.5 h-3.5" style={{ color: 'var(--fg-subtle)' }} />
+          Live Cameras
+          <ArrowRight className="w-3 h-3" style={{ color: 'var(--fg-subtle)' }} />
+        </button>
       </div>
 
-      {/* KPI Cards — Staggered Entrance & 3-Font System */}
+      {/* KPI Cards */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -155,7 +184,7 @@ export const OverviewPage: React.FC = () => {
               </div>
               <p className="font-sans text-[11px] flex items-center gap-1" style={{ color: 'var(--status-warn)' }}>
                 <AlertTriangle className="w-3 h-3 shrink-0" />
-                <span>Filter inventory page</span>
+                <span>Tap to view inventory</span>
               </p>
             </CardContent>
           </Card>
@@ -163,11 +192,11 @@ export const OverviewPage: React.FC = () => {
 
         {/* Devices Online */}
         <motion.div variants={cardVariants}>
-          <Card className="h-full">
-            <CardContent className="p-4 space-y-2">
+          <Card className="h-full cursor-pointer group" onClick={() => navigate('/dashboard/live-monitor')}>
+            <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--fg-subtle)' }}>
-                  Devices Online
+                  Cameras Online
                 </span>
                 <Camera className="w-3.5 h-3.5" style={{ color: 'var(--fg-subtle)', opacity: 0.5 }} />
               </div>
@@ -177,28 +206,29 @@ export const OverviewPage: React.FC = () => {
                   /{data.totalDevices}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 pt-1">
+              {/* Camera name list with status dot */}
+              <div className="space-y-1 pt-0.5">
                 {data.devicesList.map((dev) => (
-                  <span
-                    key={dev.id}
-                    title={`${dev.name} (${dev.status})`}
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      background: dev.status === 'online'
-                        ? 'var(--status-ok)'
-                        : 'var(--status-err)',
-                      opacity: dev.status === 'online' ? 1 : 0.4,
-                    }}
-                  />
+                  <div key={dev.id} className="flex items-center gap-1.5">
+                    <span
+                      className="shrink-0 w-1.5 h-1.5 rounded-full"
+                      style={{
+                        background: dev.status === 'online' ? 'var(--status-ok)' : 'var(--status-err)',
+                      }}
+                    />
+                    <span className="font-sans text-[10px] truncate" style={{ color: 'var(--fg-muted)' }}>
+                      {dev.name}
+                    </span>
+                  </div>
                 ))}
               </div>
+              <p className="font-sans text-[10px] group-hover:underline" style={{ color: 'var(--accent)' }}>
+                View live feeds →
+              </p>
             </CardContent>
           </Card>
         </motion.div>
       </motion.div>
-
-      {/* ACTION CENTER — Congestion Prediction & Simulation Quick Action */}
-      <ActionCenterWidget />
 
       {/* Store Health Index Gauge */}
       <HealthGauge
@@ -206,11 +236,18 @@ export const OverviewPage: React.FC = () => {
         status={data.healthStatus}
         breakdown={data.healthBreakdown}
       />
+      <Caption text="Store Health Score — a combined indicator across queue wait times, footfall velocity, stock availability, and device uptime. Green means your store is running smoothly." />
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <FootfallChart data={data.hourlyFootfall} />
-        <QueueBarChart data={data.counterWaitTimes} thresholdMins={data.queueThresholdMins} />
+        <div className="space-y-2">
+          <FootfallChart data={data.hourlyFootfall} />
+          <Caption text="Hourly Footfall — how many shoppers entered your store each hour today. Peaks help you schedule staff better." />
+        </div>
+        <div className="space-y-2">
+          <QueueBarChart data={data.counterWaitTimes} thresholdMins={data.queueThresholdMins} />
+          <Caption text="Queue Wait by Counter — average customer wait time at each checkout. Bars above the red line need attention." />
+        </div>
       </div>
 
       {/* AI Insights Feed */}
@@ -221,7 +258,10 @@ export const OverviewPage: React.FC = () => {
           actionLabel="Check edge devices"
         />
       ) : (
-        <InsightFeed insights={data.aiInsights} />
+        <div className="space-y-2">
+          <InsightFeed insights={data.aiInsights} />
+          <Caption text="AI Insights — automated observations from your vision sensors. Act on red alerts first." />
+        </div>
       )}
     </div>
   );

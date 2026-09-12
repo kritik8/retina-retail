@@ -2,55 +2,58 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, isConfiguredSupabase } from '@/lib/supabase';
 import type { Device, DeviceStatus } from '@/types';
 
+// Bump this version whenever device names change — forces localStorage cache refresh
+const DEVICES_CACHE_VERSION = 'v2';
+
 const INITIAL_MOCK_DEVICES: Device[] = [
   {
-    id: 'dev-01',
+    id: 'cam-1',
     shop_id: 'shop-demo',
-    device_name: 'Main Entrance Optics #1',
+    device_name: 'Beauty & Skincare Section',
     device_type: 'camera',
-    pairing_code: 'RET-89A1',
+    pairing_code: 'RET-A001',
     status: 'online',
-    last_heartbeat: '2 min ago',
+    last_heartbeat: '2s ago',
     created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
   },
   {
-    id: 'dev-02',
+    id: 'cam-2',
     shop_id: 'shop-demo',
-    device_name: 'Aisle A3 Rice & Grains Vision',
+    device_name: 'Main Entrance',
     device_type: 'camera',
-    pairing_code: 'RET-89A2',
+    pairing_code: 'RET-A002',
     status: 'online',
     last_heartbeat: 'Just now',
     created_at: new Date(Date.now() - 86400000 * 4).toISOString(),
   },
   {
-    id: 'dev-03',
+    id: 'cam-3',
     shop_id: 'shop-demo',
-    device_name: 'Checkout POS Queue Sensor',
+    device_name: 'Accessories & Display Wall',
     device_type: 'camera',
-    pairing_code: 'RET-89A3',
+    pairing_code: 'RET-A003',
     status: 'online',
-    last_heartbeat: '1 min ago',
+    last_heartbeat: '1s ago',
     created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
   },
   {
-    id: 'dev-04',
+    id: 'cam-4',
     shop_id: 'shop-demo',
-    device_name: 'Backroom Inventory Gateway',
+    device_name: 'Checkout Counter',
     device_type: 'camera',
-    pairing_code: 'RET-89A4',
+    pairing_code: 'RET-A004',
     status: 'online',
-    last_heartbeat: '4 min ago',
+    last_heartbeat: '5s ago',
     created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
   },
   {
-    id: 'dev-05',
+    id: 'cam-5',
     shop_id: 'shop-demo',
-    device_name: 'Side Exit Pedestrian Sensor',
-    device_type: 'sensor',
-    pairing_code: 'RET-89A5',
-    status: 'offline',
-    last_heartbeat: '14 min ago',
+    device_name: 'Fragrance & Gifting Aisle',
+    device_type: 'camera',
+    pairing_code: 'RET-A005',
+    status: 'online',
+    last_heartbeat: '3s ago',
     created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
   },
 ];
@@ -76,13 +79,21 @@ export function useDevicesData(shopId?: string) {
         }
         return data || [];
       } else {
-        const stored = localStorage.getItem(`retina_devices_${shopId}`);
+        // Clear stale localStorage cache if version doesn't match
+        const cacheKey = `retina_devices_${shopId}`;
+        const versionKey = `retina_devices_version_${shopId}`;
+        const storedVersion = localStorage.getItem(versionKey);
+        if (storedVersion !== DEVICES_CACHE_VERSION) {
+          localStorage.removeItem(cacheKey);
+          localStorage.setItem(versionKey, DEVICES_CACHE_VERSION);
+        }
+        const stored = localStorage.getItem(cacheKey);
         if (stored) return JSON.parse(stored);
-        localStorage.setItem(`retina_devices_${shopId}`, JSON.stringify(INITIAL_MOCK_DEVICES));
+        localStorage.setItem(cacheKey, JSON.stringify(INITIAL_MOCK_DEVICES));
         return INITIAL_MOCK_DEVICES;
       }
     },
-    refetchInterval: 3000, // Poll every 3 seconds for real-time status changes
+    refetchInterval: 3000,
     enabled: Boolean(shopId),
   });
 

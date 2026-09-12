@@ -8,6 +8,7 @@ import { Search } from 'lucide-react';
 
 const pageLabels: Record<string, string> = {
   '/dashboard/overview':                'Overview',
+  '/dashboard/live-monitor':            'Live Monitor',
   '/dashboard/predictive-intelligence': 'Predictive Store Intelligence',
   '/dashboard/bottleneck-diagnosis':    'Automated Bottleneck Diagnosis',
   '/dashboard/what-if-simulator':       'What-If Store Simulator',

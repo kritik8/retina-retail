@@ -3,10 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
-  Layers,
   Users,
   Package,
-  Clock,
   Camera,
   Settings,
   Sun,
@@ -14,21 +12,20 @@ import {
   TrendingUp,
   AlertOctagon,
   FlaskConical,
+  Video,
 } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
-import { useAuth } from '@/features/auth/useAuth';
 
 // ─── Nav Items ────────────────────────────────────────────────────────────────
 export const navItems = [
   { path: '/dashboard/overview',                label: 'Overview',                icon: LayoutDashboard },
+  { path: '/dashboard/live-monitor',            label: 'Live Monitor',            icon: Video },
   { path: '/dashboard/predictive-intelligence', label: 'Predictive Intelligence', icon: TrendingUp },
   { path: '/dashboard/bottleneck-diagnosis',    label: 'Bottleneck Diagnosis',    icon: AlertOctagon },
   { path: '/dashboard/what-if-simulator',       label: 'What-If Simulator',       icon: FlaskConical },
   { path: '/dashboard/shopper-analytics',       label: 'Shoppers',                icon: Users },
   { path: '/dashboard/inventory',               label: 'Inventory',               icon: Package },
-  { path: '/dashboard/queue-intelligence',      label: 'Queue',                   icon: Clock },
   { path: '/dashboard/devices',                 label: 'Devices',                 icon: Camera },
-  { path: '/dashboard/store-map',               label: 'Store Map',               icon: Layers },
   { path: '/dashboard/settings',                label: 'Settings',                icon: Settings },
 ];
 
@@ -90,13 +87,6 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark, setTheme } = useTheme();
-  const { user } = useAuth();
-
-  const avatarUrl =
-    user?.user_metadata?.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      user?.user_metadata?.full_name || 'U'
-    )}&background=D4A84B&color=2A1E00&bold=true&length=1`;
 
   const mainNavItems = navItems.filter((item) => item.path !== '/dashboard/settings');
   const settingsItem = navItems.find((item) => item.path === '/dashboard/settings');
@@ -153,19 +143,6 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
           }
         </button>
 
-        {/* Avatar */}
-        <button
-          onClick={() => navigate('/dashboard/settings')}
-          title="Profile & Settings"
-          className="relative flex items-center justify-center w-9 h-9 rounded-lg group transition-opacity duration-100 hover:opacity-80"
-        >
-          <img
-            src={avatarUrl}
-            alt="Profile"
-            className="w-6 h-6 rounded-full object-cover"
-            style={{ border: '1.5px solid var(--border-strong)' }}
-          />
-        </button>
       </div>
     </div>
   );
