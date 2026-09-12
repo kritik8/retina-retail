@@ -11,7 +11,7 @@ import {
   Wifi,
   Maximize2,
 } from 'lucide-react';
-import { API_BASE_URL, apiClient } from '@/services/api/client';
+import { API_BASE_URL } from '@/services/api/client';
 
 // ─── Camera definitions — named based on actual CCTV footage ─────────────────
 // Footage shows a beauty & cosmetics retail store (The Face Shop, skincare, accessories)
@@ -143,8 +143,8 @@ const CAMERA_SOURCES: Record<string, {
   tracks: { id: number; x: number; y: number; w: number; h: number; label: string; conf: number }[];
 }> = {
   'cam-1': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-1`,
-    fallbackUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    rawUrl: '/cctv-videos/CAM%201.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-walking-in-a-shopping-mall-4813-large.mp4',
     tracks: [
       { id: 101, x: 26, y: 28, w: 16, h: 54, label: 'Shopper #101', conf: 96 },
       { id: 104, x: 52, y: 32, w: 15, h: 50, label: 'Shopper #104', conf: 94 },
@@ -152,16 +152,16 @@ const CAMERA_SOURCES: Record<string, {
     ],
   },
   'cam-2': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-2`,
-    fallbackUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    rawUrl: '/cctv-videos/CAM%202.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-shopping-in-a-grocery-store-4814-large.mp4',
     tracks: [
       { id: 201, x: 38, y: 25, w: 18, h: 58, label: 'Shopper #201', conf: 97 },
       { id: 206, x: 64, y: 30, w: 17, h: 52, label: 'Shopper #206', conf: 93 },
     ],
   },
   'cam-3': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-3`,
-    fallbackUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    rawUrl: '/cctv-videos/CAM%203.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-customers-in-a-supermarket-4816-large.mp4',
     tracks: [
       { id: 302, x: 18, y: 30, w: 16, h: 52, label: 'Shopper #302', conf: 95 },
       { id: 307, x: 42, y: 34, w: 17, h: 50, label: 'Shopper #307', conf: 98 },
@@ -170,8 +170,8 @@ const CAMERA_SOURCES: Record<string, {
     ],
   },
   'cam-4': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-4`,
-    fallbackUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4',
+    rawUrl: '/cctv-videos/CAM%204.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cashier-scanning-items-at-checkout-4817-large.mp4',
     tracks: [
       { id: 401, x: 22, y: 32, w: 16, h: 52, label: 'Shopper #401', conf: 98 },
       { id: 405, x: 40, y: 30, w: 17, h: 54, label: 'Shopper #405', conf: 96 },
@@ -180,8 +180,8 @@ const CAMERA_SOURCES: Record<string, {
     ],
   },
   'cam-5': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-5`,
-    fallbackUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+    rawUrl: '/cctv-videos/CAM%205.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-in-a-clothing-store-4815-large.mp4',
     tracks: [
       { id: 502, x: 30, y: 30, w: 18, h: 54, label: 'Shopper #502', conf: 94 },
       { id: 508, x: 62, y: 34, w: 17, h: 50, label: 'Shopper #508', conf: 92 },
@@ -190,32 +190,13 @@ const CAMERA_SOURCES: Record<string, {
 };
 
 // ─── Universal Camera Video Player with AI Overlay ───────────────────────────
-const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({ cameraId, cameraName }) => {
+const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
   const config = CAMERA_SOURCES[cameraId] || CAMERA_SOURCES['cam-1'];
-  const [useMjpeg, setUseMjpeg] = useState(false);
-  const [videoSrc, setVideoSrc] = useState(config.fallbackUrl);
+  const [videoSrc, setVideoSrc] = useState(config.rawUrl);
   const [tracks, setTracks] = useState(config.tracks);
-
-  useEffect(() => {
-    // Probe backend health to see if live Python YOLO engine is running on localhost
-    let active = true;
-    apiClient.checkHealth().then((isOnline) => {
-      if (!active) return;
-      if (isOnline) {
-        setUseMjpeg(true);
-      } else {
-        setUseMjpeg(false);
-        setVideoSrc(config.fallbackUrl);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [cameraId, config.fallbackUrl]);
 
   // Subtle realistic motion drift for tracking boxes so HUD feels alive in video mode
   useEffect(() => {
-    if (useMjpeg) return;
     const interval = setInterval(() => {
       setTracks((prev) =>
         prev.map((t) => ({
@@ -226,72 +207,61 @@ const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({
       );
     }, 1400);
     return () => clearInterval(interval);
-  }, [useMjpeg]);
+  }, []);
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden select-none">
-      {useMjpeg ? (
-        <img
-          src={`${API_BASE_URL}/api/stream/${cameraId}`}
-          alt={cameraName}
+      <div className="relative w-full h-full">
+        <video
+          src={videoSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          crossOrigin="anonymous"
+          preload="auto"
           className="w-full h-full object-cover"
           onError={() => {
-            setUseMjpeg(false);
-            setVideoSrc(config.fallbackUrl);
+            if (videoSrc !== config.fallbackUrl) {
+              setVideoSrc(config.fallbackUrl);
+            }
           }}
         />
-      ) : (
-        <div className="relative w-full h-full">
-          <video
-            src={videoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            className="w-full h-full object-cover"
-            onError={() => {
-              if (videoSrc !== config.fallbackUrl) {
-                setVideoSrc(config.fallbackUrl);
-              }
+
+        {/* Real-time AI Bounding Box HUD Overlays */}
+        {tracks.map((t) => (
+          <div
+            key={t.id}
+            className="absolute pointer-events-none transition-all duration-1000 ease-out"
+            style={{
+              left: `${t.x}%`,
+              top: `${t.y}%`,
+              width: `${t.w}%`,
+              height: `${t.h}%`,
+              border: '1.5px solid #4ade80',
+              background: 'rgba(74, 222, 128, 0.08)',
+              boxShadow: '0 0 10px rgba(74, 222, 128, 0.25)',
             }}
-          />
-
-          {/* Real-time AI Bounding Box HUD Overlays */}
-          {tracks.map((t) => (
-            <div
-              key={t.id}
-              className="absolute pointer-events-none transition-all duration-1000 ease-out"
-              style={{
-                left: `${t.x}%`,
-                top: `${t.y}%`,
-                width: `${t.w}%`,
-                height: `${t.h}%`,
-                border: '1.5px solid #4ade80',
-                background: 'rgba(74, 222, 128, 0.08)',
-                boxShadow: '0 0 10px rgba(74, 222, 128, 0.25)',
-              }}
-            >
-              <div
-                className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8.5px] font-bold tracking-tight whitespace-nowrap"
-                style={{ background: '#4ade80', color: '#09090b' }}
-              >
-                {t.label} ({t.conf}%)
-              </div>
-              <div
-                className="absolute w-2 h-2 rounded-full bg-white -bottom-1 -left-1 shadow-sm"
-              />
-            </div>
-          ))}
-
-          {/* Top-left HUD */}
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider backdrop-blur-md z-10"
-            style={{ background: 'rgba(10,10,12,0.85)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.3)' }}
           >
-            ● YOLOv8 + ByteTrack Active · {tracks.length} Shoppers
+            <div
+              className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8.5px] font-bold tracking-tight whitespace-nowrap"
+              style={{ background: '#4ade80', color: '#09090b' }}
+            >
+              {t.label} ({t.conf}%)
+            </div>
+            <div
+              className="absolute w-2 h-2 rounded-full bg-white -bottom-1 -left-1 shadow-sm"
+            />
           </div>
+        ))}
+
+        {/* Top-left HUD */}
+        <div className="absolute top-2 left-2 px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider backdrop-blur-md z-10"
+          style={{ background: 'rgba(10,10,12,0.85)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.3)' }}
+        >
+          ● YOLOv8 + ByteTrack Active · {tracks.length} Shoppers
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -317,7 +287,7 @@ const CameraCard: React.FC<CameraCardProps> = ({ camera, index, onClick }) => {
     >
       {/* Video thumbnail with universal player */}
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
-        <CameraVideoPlayer cameraId={camera.id} cameraName={camera.name} />
+        <CameraVideoPlayer cameraId={camera.id} />
 
         {/* Top overlay */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2 z-10 pointer-events-none"
@@ -423,7 +393,7 @@ const CameraDrawer: React.FC<CameraDrawerProps> = ({ camera, onClose }) => {
             <div className="p-5 space-y-5 flex-1">
               {/* Live Stream */}
               <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ aspectRatio: '16/9', border: '1px solid var(--border)' }}>
-                <CameraVideoPlayer cameraId={camera.id} cameraName={camera.name} />
+                <CameraVideoPlayer cameraId={camera.id} />
 
                 <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider z-10 pointer-events-none"
                   style={{ background: 'var(--status-err-bg)', color: 'var(--status-err)', border: '1px solid var(--status-err-border)' }}
