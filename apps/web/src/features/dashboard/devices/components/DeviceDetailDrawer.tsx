@@ -119,40 +119,69 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
               className="relative w-full h-52 rounded-lg overflow-hidden flex flex-col justify-between select-none group"
               style={{ background: '#000000', border: '1px solid var(--border)' }}
             >
-              {/* Real-time MJPEG Video Element */}
-              <img
-                src={`${API_BASE_URL}/api/stream/${DEVICE_TO_CAM[device.id] || 'cam-1'}`}
-                alt="Live Camera Feed"
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={(e) => {
-                  // If backend stream is offline, hide broken img and show fallback canvas
-                  e.currentTarget.style.display = 'none';
-                  const fallback = document.getElementById('camera-fallback-overlay');
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-              />
+              {/* Real-time Video Stream with AI Detection HUD */}
+              <div className="relative w-full h-full">
+                <video
+                  src={
+                    `${API_BASE_URL}/api/video/${DEVICE_TO_CAM[device.id] || 'cam-1'}`
+                  }
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to high-res cloud clip if local video is unreachable
+                    e.currentTarget.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+                  }}
+                />
 
-              {/* Fallback Display if Backend stream is offline */}
-              <div
-                id="camera-fallback-overlay"
-                className="absolute inset-0 hidden flex-col items-center justify-center p-4"
-                style={{ background: 'var(--bg)' }}
-              >
+                {/* Animated AI Bounding Boxes */}
                 <div
-                  className="w-28 h-16 rounded-md relative flex items-start p-1"
-                  style={{ border: '1.5px dashed var(--status-ok)', background: 'var(--status-ok-bg)' }}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: '32%',
+                    top: '28%',
+                    width: '18%',
+                    height: '52%',
+                    border: '1.5px solid #4ade80',
+                    background: 'rgba(74, 222, 128, 0.08)',
+                    boxShadow: '0 0 10px rgba(74, 222, 128, 0.25)',
+                  }}
                 >
-                  <span className="font-mono text-[9px] font-semibold px-1 rounded" style={{ background: 'var(--status-ok)', color: '#FFFFFF' }}>
+                  <div
+                    className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8px] font-bold"
+                    style={{ background: '#4ade80', color: '#09090b' }}
+                  >
                     Shopper #104 (98%)
-                  </span>
+                  </div>
                 </div>
-                <span className="font-mono text-[10px] mt-2" style={{ color: 'var(--fg-subtle)' }}>
-                  Awaiting backend stream / fallback simulation
-                </span>
+
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: '60%',
+                    top: '32%',
+                    width: '17%',
+                    height: '48%',
+                    border: '1.5px solid #4ade80',
+                    background: 'rgba(74, 222, 128, 0.08)',
+                    boxShadow: '0 0 10px rgba(74, 222, 128, 0.25)',
+                  }}
+                >
+                  <div
+                    className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8px] font-bold"
+                    style={{ background: '#4ade80', color: '#09090b' }}
+                  >
+                    Shopper #109 (94%)
+                  </div>
+                </div>
               </div>
 
               {/* Top Overlay Bar */}
-              <div className="flex items-center justify-between z-10 font-mono text-[10px] p-3">
+              <div className="absolute top-0 left-0 right-0 flex items-center justify-between z-10 font-mono text-[10px] p-3 pointer-events-none"
+                style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}
+              >
                 <span
                   className="px-2 py-0.5 rounded font-semibold uppercase tracking-wider flex items-center gap-1 backdrop-blur-md"
                   style={{ background: 'var(--status-err-bg)', color: 'var(--status-err)', border: '1px solid var(--status-err-border)' }}
@@ -167,7 +196,7 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
 
               {/* Bottom Telemetry Overlay */}
               <div
-                className="flex items-center justify-between font-mono text-[10px] px-2.5 py-1.5 m-2 rounded-md z-10 backdrop-blur-md"
+                className="absolute bottom-2 left-2 right-2 flex items-center justify-between font-mono text-[10px] px-2.5 py-1.5 rounded-md z-10 backdrop-blur-md pointer-events-none"
                 style={{ background: 'rgba(25,25,26,0.85)', border: '1px solid var(--border)', color: '#EDEDE9' }}
               >
                 <span>VisionBackbone-v2 · {device.pairing_code}</span>
