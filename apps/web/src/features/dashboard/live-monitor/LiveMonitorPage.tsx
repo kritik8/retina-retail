@@ -11,7 +11,7 @@ import {
   Wifi,
   Maximize2,
 } from 'lucide-react';
-import { API_BASE_URL } from '@/services/api/client';
+import { API_BASE_URL, apiClient } from '@/services/api/client';
 
 // ─── Camera definitions — named based on actual CCTV footage ─────────────────
 // Footage shows a beauty & cosmetics retail store (The Face Shop, skincare, accessories)
@@ -191,9 +191,42 @@ const CAMERA_SOURCES: Record<string, {
 
 // ─── Universal Camera Video Player with AI Overlay ───────────────────────────
 const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({ cameraId, cameraName }) => {
-  const [useMjpeg, setUseMjpeg] = useState(true);
-  const [videoSrc, setVideoSrc] = useState(CAMERA_SOURCES[cameraId]?.rawUrl || '');
   const config = CAMERA_SOURCES[cameraId] || CAMERA_SOURCES['cam-1'];
+  const [useMjpeg, setUseMjpeg] = useState(false);
+  const [videoSrc, setVideoSrc] = useState(config.fallbackUrl);
+  const [tracks, setTracks] = useState(config.tracks);
+
+  useEffect(() => {
+    // Probe backend health to see if live Python YOLO engine is running on localhost
+    let active = true;
+    apiClient.checkHealth().then((isOnline) => {
+      if (!active) return;
+      if (isOnline) {
+        setUseMjpeg(true);
+      } else {
+        setUseMjpeg(false);
+        setVideoSrc(config.fallbackUrl);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [cameraId, config.fallbackUrl]);
+
+  // Subtle realistic motion drift for tracking boxes so HUD feels alive in video mode
+  useEffect(() => {
+    if (useMjpeg) return;
+    const interval = setInterval(() => {
+      setTracks((prev) =>
+        prev.map((t) => ({
+          ...t,
+          x: Math.min(80, Math.max(15, t.x + (Math.random() - 0.49) * 1.8)),
+          y: Math.min(65, Math.max(20, t.y + (Math.random() - 0.5) * 1.2)),
+        }))
+      );
+    }, 1400);
+    return () => clearInterval(interval);
+  }, [useMjpeg]);
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden select-none">
@@ -202,7 +235,10 @@ const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({
           src={`${API_BASE_URL}/api/stream/${cameraId}`}
           alt={cameraName}
           className="w-full h-full object-cover"
-          onError={() => setUseMjpeg(false)}
+          onError={() => {
+            setUseMjpeg(false);
+            setVideoSrc(config.fallbackUrl);
+          }}
         />
       ) : (
         <div className="relative w-full h-full">
@@ -212,6 +248,7 @@ const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({
             loop
             muted
             playsInline
+            preload="auto"
             className="w-full h-full object-cover"
             onError={() => {
               if (videoSrc !== config.fallbackUrl) {
@@ -221,10 +258,10 @@ const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({
           />
 
           {/* Real-time AI Bounding Box HUD Overlays */}
-          {config.tracks.map((t) => (
+          {tracks.map((t) => (
             <div
               key={t.id}
-              className="absolute pointer-events-none transition-all duration-700 ease-out"
+              className="absolute pointer-events-none transition-all duration-1000 ease-out"
               style={{
                 left: `${t.x}%`,
                 top: `${t.y}%`,
@@ -236,7 +273,7 @@ const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({
               }}
             >
               <div
-                className="absolute -top-5 left-0 px-1.5 py-0.5 rounded font-mono text-[9px] font-bold tracking-tight whitespace-nowrap"
+                className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8.5px] font-bold tracking-tight whitespace-nowrap"
                 style={{ background: '#4ade80', color: '#09090b' }}
               >
                 {t.label} ({t.conf}%)
@@ -248,10 +285,10 @@ const CameraVideoPlayer: React.FC<{ cameraId: string; cameraName: string }> = ({
           ))}
 
           {/* Top-left HUD */}
-          <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider backdrop-blur-md"
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase tracking-wider backdrop-blur-md z-10"
             style={{ background: 'rgba(10,10,12,0.85)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.3)' }}
           >
-            ● YOLOv8 + ByteTrack Active · {config.tracks.length} Shoppers
+            ● YOLOv8 + ByteTrack Active · {tracks.length} Shoppers
           </div>
         </div>
       )}
