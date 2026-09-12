@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 import time
+import math
 import logging
+import threading
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 
@@ -23,6 +25,7 @@ class YOLODetector:
         self.track_first_seen: Dict[int, float] = {}
         self.track_centroids_history: Dict[int, List[List[float]]] = {}
         self.use_fallback = False
+        self.lock = threading.Lock()
 
         self._load_model()
 
@@ -43,46 +46,47 @@ class YOLODetector:
 
         if not self.use_fallback and self.model is not None:
             try:
-                # Class 0 = person in COCO dataset
-                results = self.model.track(
-                    source=frame,
-                    persist=True,
-                    classes=[0],
-                    conf=self.conf_thresh,
-                    verbose=False,
-                    tracker="bytetrack.yaml"
-                )
+                with self.lock:
+                    # Class 0 = person in COCO dataset
+                    results = self.model.track(
+                        source=frame,
+                        persist=True,
+                        classes=[0],
+                        conf=self.conf_thresh,
+                        verbose=False,
+                        tracker="bytetrack.yaml"
+                    )
 
-                if results and len(results) > 0:
-                    boxes = results[0].boxes
-                    if boxes is not None and boxes.id is not None:
-                        coords = boxes.xyxy.cpu().numpy()
-                        track_ids = boxes.id.cpu().numpy().astype(int)
-                        confs = boxes.conf.cpu().numpy()
+                    if results and len(results) > 0:
+                        boxes = results[0].boxes
+                        if boxes is not None and boxes.id is not None:
+                            coords = boxes.xyxy.cpu().numpy()
+                            track_ids = boxes.id.cpu().numpy().astype(int)
+                            confs = boxes.conf.cpu().numpy()
 
-                        for i, track_id in enumerate(track_ids):
-                            x1, y1, x2, y2 = coords[i]
-                            cx = float((x1 + x2) / 2.0)
-                            cy = float((y1 + y2) / 2.0)
-                            conf = float(confs[i])
+                            for i, track_id in enumerate(track_ids):
+                                x1, y1, x2, y2 = coords[i]
+                                cx = float((x1 + x2) / 2.0)
+                                cy = float((y1 + y2) / 2.0)
+                                conf = float(confs[i])
 
-                            if track_id not in self.track_first_seen:
-                                self.track_first_seen[track_id] = now
-                                self.track_centroids_history[track_id] = []
+                                if track_id not in self.track_first_seen:
+                                    self.track_first_seen[track_id] = now
+                                    self.track_centroids_history[track_id] = []
 
-                            dwell = now - self.track_first_seen[track_id]
-                            self.track_centroids_history[track_id].append([cx, cy])
-                            if len(self.track_centroids_history[track_id]) > 30:
-                                self.track_centroids_history[track_id].pop(0)
+                                dwell = now - self.track_first_seen[track_id]
+                                self.track_centroids_history[track_id].append([cx, cy])
+                                if len(self.track_centroids_history[track_id]) > 30:
+                                    self.track_centroids_history[track_id].pop(0)
 
-                            tracked_persons.append(TrackedPerson(
-                                track_id=int(track_id),
-                                bbox=[float(x1), float(y1), float(x2), float(y2)],
-                                confidence=round(conf, 2),
-                                centroid=[cx, cy],
-                                dwell_seconds=round(dwell, 1)
-                            ))
-                        return tracked_persons
+                                tracked_persons.append(TrackedPerson(
+                                    track_id=int(track_id),
+                                    bbox=[float(x1), float(y1), float(x2), float(y2)],
+                                    confidence=round(conf, 2),
+                                    centroid=[cx, cy],
+                                    dwell_seconds=round(dwell, 1)
+                                ))
+                            return tracked_persons
             except Exception as e:
                 logger.debug(f"YOLO inference step warning: {e}")
 

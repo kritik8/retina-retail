@@ -145,6 +145,17 @@ interface CameraCardProps {
 
 const CameraCard: React.FC<CameraCardProps> = ({ camera, index, onClick }) => {
   const [streamOk, setStreamOk] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
+
+  useEffect(() => {
+    if (!streamOk) {
+      const timer = setTimeout(() => {
+        setRetryKey(k => k + 1);
+        setStreamOk(true);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [streamOk]);
 
   return (
     <motion.div
@@ -161,7 +172,8 @@ const CameraCard: React.FC<CameraCardProps> = ({ camera, index, onClick }) => {
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
         {streamOk ? (
           <img
-            src={`${API_BASE_URL}/api/stream/${camera.id}`}
+            key={retryKey}
+            src={`${API_BASE_URL}/api/stream/${camera.id}?k=${retryKey}`}
             alt={camera.name}
             className="absolute inset-0 w-full h-full object-cover"
             onError={() => setStreamOk(false)}
@@ -176,7 +188,7 @@ const CameraCard: React.FC<CameraCardProps> = ({ camera, index, onClick }) => {
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-black" style={{ background: 'var(--status-warn)' }} />
             </div>
             <span className="font-mono text-[9px] uppercase tracking-widest opacity-30" style={{ color: 'var(--fg)' }}>
-              Connecting…
+              Reconnecting…
             </span>
           </div>
         )}
@@ -229,10 +241,24 @@ interface CameraDrawerProps {
 const CameraDrawer: React.FC<CameraDrawerProps> = ({ camera, onClose }) => {
   const stats = useCameraStats(camera?.id || '');
   const [streamOk, setStreamOk] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
-    if (camera) setStreamOk(true);
+    if (camera) {
+      setStreamOk(true);
+      setRetryKey(0);
+    }
   }, [camera?.id]);
+
+  useEffect(() => {
+    if (!streamOk) {
+      const timer = setTimeout(() => {
+        setRetryKey(k => k + 1);
+        setStreamOk(true);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [streamOk]);
 
   const alertColor =
     stats.alertLevel === 'alert' ? 'var(--status-err)' :
@@ -292,7 +318,8 @@ const CameraDrawer: React.FC<CameraDrawerProps> = ({ camera, onClose }) => {
               <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ aspectRatio: '16/9', border: '1px solid var(--border)' }}>
                 {streamOk ? (
                   <img
-                    src={`${API_BASE_URL}/api/stream/${camera.id}`}
+                    key={retryKey}
+                    src={`${API_BASE_URL}/api/stream/${camera.id}?k=${retryKey}`}
                     alt="Live Feed"
                     className="w-full h-full object-cover"
                     onError={() => setStreamOk(false)}
