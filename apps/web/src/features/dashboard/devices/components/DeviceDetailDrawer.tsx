@@ -136,46 +136,7 @@ export const DeviceDetailDrawer: React.FC<DeviceDetailDrawerProps> = ({
                   }}
                 />
 
-                {/* Animated AI Bounding Boxes */}
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: '32%',
-                    top: '28%',
-                    width: '18%',
-                    height: '52%',
-                    border: '1.5px solid #4ade80',
-                    background: 'rgba(74, 222, 128, 0.08)',
-                    boxShadow: '0 0 10px rgba(74, 222, 128, 0.25)',
-                  }}
-                >
-                  <div
-                    className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8px] font-bold"
-                    style={{ background: '#4ade80', color: '#09090b' }}
-                  >
-                    Shopper #104 (98%)
-                  </div>
-                </div>
-
-                <div
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: '60%',
-                    top: '32%',
-                    width: '17%',
-                    height: '48%',
-                    border: '1.5px solid #4ade80',
-                    background: 'rgba(74, 222, 128, 0.08)',
-                    boxShadow: '0 0 10px rgba(74, 222, 128, 0.25)',
-                  }}
-                >
-                  <div
-                    className="absolute -top-4 left-0 px-1.5 py-0.5 rounded font-mono text-[8px] font-bold"
-                    style={{ background: '#4ade80', color: '#09090b' }}
-                  >
-                    Shopper #109 (94%)
-                  </div>
-                </div>
+                {/* Live optical stream with clean enterprise camera overlay */}
               </div>
 
               {/* Top Overlay Bar */}

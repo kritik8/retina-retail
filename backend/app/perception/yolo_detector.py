@@ -53,15 +53,20 @@ class YOLODetector:
                         persist=True,
                         classes=[0],
                         conf=self.conf_thresh,
+                        imgsz=384,
                         verbose=False,
                         tracker="bytetrack.yaml"
                     )
 
                     if results and len(results) > 0:
                         boxes = results[0].boxes
-                        if boxes is not None and boxes.id is not None:
+                        if boxes is not None and len(boxes) > 0:
                             coords = boxes.xyxy.cpu().numpy()
-                            track_ids = boxes.id.cpu().numpy().astype(int)
+                            track_ids = (
+                                boxes.id.cpu().numpy().astype(int)
+                                if boxes.id is not None
+                                else list(range(1, len(coords) + 1))
+                            )
                             confs = boxes.conf.cpu().numpy()
 
                             for i, track_id in enumerate(track_ids):

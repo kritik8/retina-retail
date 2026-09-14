@@ -82,9 +82,10 @@
     /* ── Accent: Butter Yellow (darker, richer for dark bg) */
     --accent:        #C9A03E;
     --accent-hover:  #B89030;
-    --accent-fg:     #1A1200;
+    --accent-fg:     #F5E8C8; /* high-contrast light warm cream for dark surfaces (WCAG AAA) */
     --accent-subtle: #27220A;
     --accent-border: #8A7030;
+    --btn-primary-fg: #140E00; /* dark text on solid bright gold button background */
 
     /* ── Status ──────────────────────────────────────────── */
     --status-ok:      #4A9A5C;

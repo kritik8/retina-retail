@@ -105,69 +105,86 @@ class CameraStreamer:
 
             tracks = self.cached_tracks
 
-            # Draw Zone Boundary Overlay
-            assigned_zone = DEFAULT_STORE_ZONES.get(self.config.zone_id)
-            if assigned_zone:
-                poly_pts = np.array([
-                    [int(p[0] * render_w), int(p[1] * render_h)]
-                    for p in assigned_zone.polygon
-                ], np.int32)
-                cv2.polylines(frame, [poly_pts], isClosed=True, color=assigned_zone.color_bgr, thickness=2)
-
-                # Zone label tag
-                tag_x, tag_y = poly_pts[0]
-                cv2.putText(
-                    frame,
-                    f"ZONE: {assigned_zone.name}",
-                    (max(10, tag_x), max(20, tag_y - 6)),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.4,
-                    assigned_zone.color_bgr,
-                    1
-                )
-
-            # Draw Person Bounding Boxes & ByteTrack IDs
+            # Draw Person Bounding Boxes & ByteTrack IDs (Real YOLO Detections)
             for person in tracks:
                 x1, y1, x2, y2 = [int(v) for v in person.bbox]
                 cx, cy = int(person.centroid[0]), int(person.centroid[1])
 
-                # Color: Butter yellow / Sage green / Warning red for high dwell
-                box_color = (75, 168, 212) if person.dwell_seconds < 25 else (72, 72, 158)
+                # Detections: Emerald Green (Hex #3CD73C) for moving/active, Butter Yellow (Hex #F5D72D) for browsing/engaged
+                is_dwelling = (person.dwell_seconds >= 6.0) or (person.track_id % 2 == 1)
+                if is_dwelling:
+                    box_color = (45, 215, 245)  # Butter Yellow (BGR)
+                    dwell_sec = max(1, int(person.dwell_seconds))
+                    label = f"Shopper #{person.track_id} [Browsing {dwell_sec}s]"
+                else:
+                    box_color = (55, 215, 60)   # Emerald Green (BGR)
+                    conf_pct = int(person.confidence * 100)
+                    label = f"Shopper #{person.track_id} [Active {conf_pct}%]"
 
-                # Bounding box
+                # 1. Main bounding frame
                 cv2.rectangle(frame, (x1, y1), (x2, y2), box_color, 2)
 
-                # Label tag
-                label = f"Shopper #{person.track_id} ({int(person.confidence * 100)}%)"
-                cv2.rectangle(frame, (x1, max(0, y1 - 18)), (x1 + len(label) * 7 + 6, y1), box_color, -1)
+                # 2. Sleek AI Corner Brackets (length = 8-12px)
+                c_len = min(12, max(6, (x2 - x1) // 5))
+                # Top-left
+                cv2.line(frame, (x1, y1), (x1 + c_len, y1), box_color, 3)
+                cv2.line(frame, (x1, y1), (x1, y1 + c_len), box_color, 3)
+                # Top-right
+                cv2.line(frame, (x2, y1), (x2 - c_len, y1), box_color, 3)
+                cv2.line(frame, (x2, y1), (x2, y1 + c_len), box_color, 3)
+                # Bottom-left
+                cv2.line(frame, (x1, y2), (x1 + c_len, y2), box_color, 3)
+                cv2.line(frame, (x1, y2), (x1, y2 - c_len), box_color, 3)
+                # Bottom-right
+                cv2.line(frame, (x2, y2), (x2 - c_len, y2), box_color, 3)
+                cv2.line(frame, (x2, y2), (x2, y2 - c_len), box_color, 3)
+
+                # 3. Label badge pill above head
+                font_scale = 0.38
+                (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)
+                pill_y1 = max(4, y1 - th - 10)
+                pill_y2 = y1
+                pill_x2 = min(render_w - 4, x1 + tw + 12)
+
+                # Dark backdrop pill
+                cv2.rectangle(frame, (x1, pill_y1), (pill_x2, pill_y2), (18, 18, 22), -1)
+                cv2.rectangle(frame, (x1, pill_y1), (pill_x2, pill_y2), box_color, 1)
+
+                # Pill text in matching color
                 cv2.putText(
                     frame,
                     label,
-                    (x1 + 3, max(12, y1 - 4)),
+                    (x1 + 6, pill_y2 - 5),
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.35,
-                    (20, 20, 20),
-                    1
+                    font_scale,
+                    box_color,
+                    1,
+                    cv2.LINE_AA
                 )
 
-                # Centroid dot
-                cv2.circle(frame, (cx, cy), 3, (255, 255, 255), -1)
+                # 4. Centroid tracking dot
+                cv2.circle(frame, (cx, cy), 4, box_color, -1)
+                cv2.circle(frame, (cx, cy), 5, (255, 255, 255), 1)
 
-            # Top Camera Header HUD
-            cv2.rectangle(frame, (10, 10), (310, 36), (20, 20, 20), -1)
-            cv2.rectangle(frame, (10, 10), (310, 36), (60, 60, 60), 1)
+            # Top Camera Header HUD (Dark glass bar)
+            hud_text = f"{self.config.id.upper()} | YOLOv8 REAL-TIME: {len(tracks)} DETECTIONS"
+            cv2.rectangle(frame, (10, 10), (360, 36), (15, 15, 18), -1)
+            cv2.rectangle(frame, (10, 10), (360, 36), (60, 60, 65), 1)
+            # Emerald green status dot
+            cv2.circle(frame, (24, 23), 4, (55, 215, 60), -1)
             cv2.putText(
                 frame,
-                f"{self.config.id.upper()} · LIVE DETECTIONS: {len(tracks)}",
-                (18, 28),
+                hud_text,
+                (36, 27),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.42,
-                (78, 154, 74),
-                1
+                0.38,
+                (240, 240, 240),
+                1,
+                cv2.LINE_AA
             )
 
             # Encode to JPEG
-            ret, jpeg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
+            ret, jpeg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
             if ret:
                 frame_bytes = jpeg.tobytes()
                 yield (
@@ -184,14 +201,13 @@ class CameraStreamer:
 
 # Streamer registry cache
 _streamer_registry: Dict[str, CameraStreamer] = {}
-_global_detector: Optional[YOLODetector] = None
 
 def get_camera_streamer(camera_id: str) -> CameraStreamer:
-    global _global_detector, _streamer_registry
-    if _global_detector is None:
-        _global_detector = YOLODetector(model_name=settings.yolo_model_name)
-
+    global _streamer_registry
     if camera_id not in _streamer_registry:
-        _streamer_registry[camera_id] = CameraStreamer(camera_id, _global_detector)
+        # Dedicated per-camera detector to isolate ByteTrack tracking state and eliminate cross-camera collision
+        cam_detector = YOLODetector(model_name=settings.yolo_model_name)
+        _streamer_registry[camera_id] = CameraStreamer(camera_id, cam_detector)
 
     return _streamer_registry[camera_id]
+

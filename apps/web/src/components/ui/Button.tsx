@@ -21,10 +21,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // We use inline style for CSS-var-based colors to avoid Tailwind JIT misses
     const variantStyleMap: Record<string, React.CSSProperties> = {
-      primary:   { background: 'var(--accent)', color: 'var(--accent-fg)', border: 'none' },
+      primary:   { background: 'var(--accent)', color: 'var(--btn-primary-fg, #140E00)', fontWeight: 600, border: '1px solid var(--accent-hover)' },
       secondary: { background: 'var(--bg-subtle)', color: 'var(--fg)', border: '1px solid var(--border)' },
       outline:   { background: 'transparent', color: 'var(--fg)', border: '1px solid var(--border)' },
-      ghost:     { background: 'transparent', color: 'var(--fg-muted)', border: 'none' },
+      ghost:     { background: 'transparent', color: 'var(--fg)', border: 'none' },
       danger:    { background: 'var(--status-err-bg)', color: 'var(--status-err)', border: '1px solid var(--status-err)' },
     };
 
