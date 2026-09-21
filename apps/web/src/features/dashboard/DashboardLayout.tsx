@@ -3,8 +3,9 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FloatingDock } from './components/FloatingDock';
 import { CommandPalette } from './components/CommandPalette';
-import { useAuth } from '@/features/auth/useAuth';
 import { Search } from 'lucide-react';
+
+const DEMO_STORE_NAME = 'The Face Shop — Sector 18';
 
 const pageLabels: Record<string, string> = {
   '/dashboard/overview':                'Overview',
@@ -23,7 +24,6 @@ const pageLabels: Record<string, string> = {
 export const DashboardLayout: React.FC = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const location = useLocation();
-  const { shop } = useAuth();
 
   // Cmd+K command palette
   useEffect(() => {
@@ -57,7 +57,7 @@ export const DashboardLayout: React.FC = () => {
               className="text-[13px] font-medium"
               style={{ color: 'var(--fg-muted)' }}
             >
-              {shop?.shop_name || 'My Store'}
+              {DEMO_STORE_NAME}
             </span>
           </div>
           {pageLabel && (

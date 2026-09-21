@@ -1,0 +1,42 @@
+# render.yaml — Render Blueprint for RetinaRetail Backend
+# Drop this file in the backend/ folder, then connect the repo on render.com
+# Render auto-detects this and configures the service.
+
+services:
+  - type: web
+    name: retina-retail-backend
+    runtime: docker
+    # Point Render at the backend subdirectory containing the Dockerfile
+    dockerfilePath: ./Dockerfile
+    # rootDir is relative to repo root — adjust if deploying from monorepo root
+    # rootDir: backend   # uncomment if deploying from the monorepo root
+    plan: free          # free tier (512 MB RAM, 0.1 CPU, spins down on idle)
+    region: singapore   # change to us-east, frankfurt, ohio, etc. as needed
+
+    # ── Environment Variables ────────────────────────────────────────────────
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: HOST
+        value: "0.0.0.0"
+      # Optional: ESP32-CAM live stream URL (leave blank for file-based demo)
+      - key: ESP32_STREAM_URL
+        value: ""
+      # Per-camera overrides (leave blank to use CCTV footage files)
+      - key: CAM_1_STREAM_URL
+        value: ""
+      - key: CAM_2_STREAM_URL
+        value: ""
+      - key: CAM_3_STREAM_URL
+        value: ""
+      - key: CAM_4_STREAM_URL
+        value: ""
+      - key: CAM_5_STREAM_URL
+        value: ""
+      # Path to CCTV footage directory — set this if using Render persistent disk
+      # e.g. /data/footage (mount your disk at /data then put videos in /data/footage)
+      - key: CCTV_DIR
+        value: ""
+
+    # ── Health Check ─────────────────────────────────────────────────────────
+    healthCheckPath: /api/health

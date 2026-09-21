@@ -13,11 +13,15 @@ except ImportError:
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BASE_DIR.parent
 
-# Video footage search paths
+# Video footage search paths — ordered by priority
+# CCTV_DIR env var lets Render persistent disk be injected without a rebuild
+_env_cctv = os.getenv("CCTV_DIR", "")
 CCTV_DIRS = [
+    *(  [Path(_env_cctv)] if _env_cctv else []  ),
     PROJECT_ROOT / "CCTV Footage",
     PROJECT_ROOT / "cctv-footage",
     BASE_DIR / "footage",
+    Path("/data/footage"),     # common Render persistent disk mount
 ]
 
 class CameraConfig(BaseModel):

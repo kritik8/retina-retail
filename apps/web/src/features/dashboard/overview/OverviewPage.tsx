@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import { useOverviewData } from './useOverviewData';
@@ -10,7 +10,6 @@ import { InsightFeed } from './components/InsightFeed';
 import { Card, CardContent } from '@/components/ui/Card';
 import { OverviewSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { useAuth } from '@/features/auth/useAuth';
 import {
   Users,
   Clock,
@@ -22,6 +21,8 @@ import {
   RefreshCw,
   Video,
   Info,
+  X,
+  BookOpen,
 } from 'lucide-react';
 
 const containerVariants: Variants = {
@@ -45,9 +46,83 @@ const Caption: React.FC<{ text: string }> = ({ text }) => (
   </div>
 );
 
+// First-timer guide banner — dismissible
+const GuideBanner: React.FC<{ onDismiss: () => void; onGoToLive: () => void }> = ({ onDismiss, onGoToLive }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -8 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -8 }}
+    transition={{ duration: 0.22, ease: 'easeOut' }}
+    className="relative rounded-xl p-4"
+    style={{
+      background: 'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(99,102,241,0.05) 100%)',
+      border: '1px solid rgba(99,102,241,0.3)',
+    }}
+  >
+    {/* Dismiss */}
+    <button
+      onClick={onDismiss}
+      className="absolute top-3 right-3 p-1 rounded-lg transition-colors"
+      style={{ color: 'var(--fg-subtle)' }}
+      title="Dismiss guide"
+    >
+      <X className="w-3.5 h-3.5" />
+    </button>
+
+    <div className="flex items-start gap-3">
+      <div className="p-2 rounded-lg shrink-0" style={{ background: 'rgba(99,102,241,0.2)' }}>
+        <BookOpen className="w-4 h-4" style={{ color: '#818cf8' }} />
+      </div>
+      <div className="space-y-2.5 pr-6">
+        <div>
+          <p className="text-[13px] font-semibold" style={{ color: 'var(--fg)' }}>
+            Welcome to Retina Retail — AI-Powered Store Intelligence
+          </p>
+          <p className="text-[11px] mt-0.5" style={{ color: 'var(--fg-muted)' }}>
+            Real-time analytics powered by YOLOv8 computer vision across 5 live camera feeds.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {[
+            { step: '1', title: 'Live Monitor', desc: 'See YOLO detections on CCTV feeds' },
+            { step: '2', title: 'Queue Intelligence', desc: 'Track checkout wait times live' },
+            { step: '3', title: 'What-If Simulator', desc: 'Simulate staffing interventions' },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="flex items-start gap-2 p-2.5 rounded-lg"
+              style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)' }}
+            >
+              <span
+                className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono"
+                style={{ background: 'rgba(99,102,241,0.3)', color: '#a5b4fc' }}
+              >
+                {item.step}
+              </span>
+              <div>
+                <p className="text-[11px] font-semibold" style={{ color: 'var(--fg)' }}>{item.title}</p>
+                <p className="text-[10px]" style={{ color: 'var(--fg-muted)' }}>{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={onGoToLive}
+          className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors"
+          style={{ background: 'rgba(99,102,241,0.25)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.4)' }}
+        >
+          <Video className="w-3 h-3" />
+          Start with Live Monitor
+          <ArrowRight className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  </motion.div>
+);
+
 export const OverviewPage: React.FC = () => {
   const { data, isLoading, isFetching } = useOverviewData();
-  const { shop } = useAuth();
+  const [showGuide, setShowGuide] = useState(true);
   const navigate = useNavigate();
 
   if (isLoading || !data) return <OverviewSkeleton />;
@@ -75,7 +150,7 @@ export const OverviewPage: React.FC = () => {
             )}
           </div>
           <p className="font-sans text-xs" style={{ color: 'var(--fg-muted)' }}>
-            {shop?.shop_name} · live telemetry stream
+            The Face Shop — Sector 18 · live telemetry stream
           </p>
         </div>
 
@@ -96,6 +171,14 @@ export const OverviewPage: React.FC = () => {
           <ArrowRight className="w-3 h-3" style={{ color: 'var(--fg-subtle)' }} />
         </button>
       </div>
+
+      {/* First-timer guide banner */}
+      {showGuide && (
+        <GuideBanner
+          onDismiss={() => setShowGuide(false)}
+          onGoToLive={() => navigate('/dashboard/live-monitor')}
+        />
+      )}
 
       {/* KPI Cards */}
       <motion.div

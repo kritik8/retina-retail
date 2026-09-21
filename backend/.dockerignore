@@ -1,0 +1,39 @@
+# ── Build context exclusions ──────────────────────────────────────────────────
+# Keep the Docker image lean by excluding non-essential files
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+*.env.*
+
+# CCTV Footage — ~680 MB, too large for free-tier image
+# Videos are mounted at runtime or streamed from frontend's local copy
+CCTV Footage/
+footage/
+
+# Git and CI
+.git/
+.gitignore
+.github/
+
+# Dev tools & docs
+.prettierrc
+*.md
+docs/
+
+# Node (shouldn't be here but just in case)
+node_modules/
+
+# Test artifacts
+*.log

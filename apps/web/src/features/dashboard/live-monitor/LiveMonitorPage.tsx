@@ -135,26 +135,26 @@ const StatBar: React.FC<{ value: number; color: string }> = ({ value, color }) =
   </div>
 );
 
-// ─── Camera video sources ───────────────────────────────────────────────────
+// ─── Camera video sources — backend streams raw MP4 for deployed frontend ───
 const CAMERA_SOURCES: Record<string, { rawUrl: string; fallbackUrl: string }> = {
   'cam-1': {
-    rawUrl: '/cctv-videos/CAM%201.mp4',
+    rawUrl: `${API_BASE_URL}/api/video/cam-1`,
     fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-walking-in-a-shopping-mall-4813-large.mp4',
   },
   'cam-2': {
-    rawUrl: '/cctv-videos/CAM%202.mp4',
+    rawUrl: `${API_BASE_URL}/api/video/cam-2`,
     fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-shopping-in-a-grocery-store-4814-large.mp4',
   },
   'cam-3': {
-    rawUrl: '/cctv-videos/CAM%203.mp4',
+    rawUrl: `${API_BASE_URL}/api/video/cam-3`,
     fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-customers-in-a-supermarket-4816-large.mp4',
   },
   'cam-4': {
-    rawUrl: '/cctv-videos/CAM%204.mp4',
+    rawUrl: `${API_BASE_URL}/api/video/cam-4`,
     fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cashier-scanning-items-at-checkout-4817-large.mp4',
   },
   'cam-5': {
-    rawUrl: '/cctv-videos/CAM%205.mp4',
+    rawUrl: `${API_BASE_URL}/api/video/cam-5`,
     fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-in-a-clothing-store-4815-large.mp4',
   },
 };
@@ -253,19 +253,22 @@ const YoloBoxOverlay: React.FC<{ tracks: YoloTrack[] }> = ({ tracks }) => {
 const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
   const source = CAMERA_SOURCES[cameraId] || CAMERA_SOURCES['cam-1'];
   const info = CAMERA_ZONE_INFO[cameraId] || CAMERA_ZONE_INFO['cam-1'];
-  const [useYoloStream, setUseYoloStream] = useState(false);
+  // Auto-enable YOLO MJPEG stream — judges see real-time detections immediately
+  const [useYoloStream, setUseYoloStream] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(false);
   const [videoSrc, setVideoSrc] = useState(source.rawUrl);
   const [trackData, setTrackData] = useState<YoloTrackData | null>(null);
   const [activeTracks, setActiveTracks] = useState<YoloTrack[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Check backend health
+  // Check backend health on mount — start YOLO stream if available
   useEffect(() => {
     let active = true;
     apiClient.checkHealth().then((isOnline) => {
       if (active) {
         setBackendAvailable(isOnline);
+        // If backend is offline, fall back to video+local track overlay
+        if (!isOnline) setUseYoloStream(false);
       }
     });
     return () => {

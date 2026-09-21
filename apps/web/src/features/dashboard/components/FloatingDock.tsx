@@ -3,30 +3,24 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
-  Users,
-  Package,
-  Camera,
-  Settings,
-  Sun,
-  Moon,
+  Video,
   TrendingUp,
   AlertOctagon,
   FlaskConical,
-  Video,
+  Clock,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useTheme } from '@/components/useTheme';
 
-// ─── Nav Items ────────────────────────────────────────────────────────────────
+// ─── 6 core analytics pages for SIH demo ─────────────────────────────────────
 export const navItems = [
   { path: '/dashboard/overview',                label: 'Overview',                icon: LayoutDashboard },
   { path: '/dashboard/live-monitor',            label: 'Live Monitor',            icon: Video },
+  { path: '/dashboard/queue-intelligence',      label: 'Queue Intelligence',      icon: Clock },
   { path: '/dashboard/predictive-intelligence', label: 'Predictive Intelligence', icon: TrendingUp },
   { path: '/dashboard/bottleneck-diagnosis',    label: 'Bottleneck Diagnosis',    icon: AlertOctagon },
   { path: '/dashboard/what-if-simulator',       label: 'What-If Simulator',       icon: FlaskConical },
-  { path: '/dashboard/shopper-analytics',       label: 'Shoppers',                icon: Users },
-  { path: '/dashboard/inventory',               label: 'Inventory',               icon: Package },
-  { path: '/dashboard/devices',                 label: 'Devices',                 icon: Camera },
-  { path: '/dashboard/settings',                label: 'Settings',                icon: Settings },
 ];
 
 // ─── Divider ──────────────────────────────────────────────────────────────────
@@ -52,7 +46,7 @@ const DockButton: React.FC<DockButtonProps> = ({ icon: Icon, label, isActive, on
     aria-label={label}
     className="relative flex items-center justify-center w-9 h-9 rounded-lg group transition-colors duration-100"
   >
-    {/* Sliding active/hover highlight — shared layoutId for spring transition */}
+    {/* Sliding active/hover highlight */}
     {isActive && (
       <motion.div
         layoutId="dock-pill"
@@ -61,7 +55,6 @@ const DockButton: React.FC<DockButtonProps> = ({ icon: Icon, label, isActive, on
         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
       />
     )}
-    {/* Hover-only highlight (non-active) */}
     {!isActive && (
       <span
         className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-100"
@@ -78,7 +71,7 @@ const DockButton: React.FC<DockButtonProps> = ({ icon: Icon, label, isActive, on
   </button>
 );
 
-// ─── Floating Dock (always visible, never collapses) ─────────────────────────
+// ─── Floating Dock ────────────────────────────────────────────────────────────
 interface FloatingDockProps {
   onOpenCommandPalette: () => void;
 }
@@ -87,9 +80,6 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark, setTheme } = useTheme();
-
-  const mainNavItems = navItems.filter((item) => item.path !== '/dashboard/settings');
-  const settingsItem = navItems.find((item) => item.path === '/dashboard/settings');
 
   return (
     <div
@@ -100,8 +90,8 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
         className="dock-glass flex items-center gap-0.5 px-2 py-2 rounded-full shadow-lg shadow-black/10 overflow-x-auto max-w-[95vw]"
         style={{ height: '52px' }}
       >
-        {/* ── Primary Nav Items ───────────────────────────── */}
-        {mainNavItems.map((item) => (
+        {/* ── Core Nav Items ─────────────────────────────── */}
+        {navItems.map((item) => (
           <DockButton
             key={item.path}
             icon={item.icon}
@@ -110,19 +100,6 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({ onOpenCommandPalette
             onClick={() => navigate(item.path)}
           />
         ))}
-
-        {/* Divider before settings */}
-        <Divider />
-
-        {/* Settings */}
-        {settingsItem && (
-          <DockButton
-            icon={settingsItem.icon}
-            label={settingsItem.label}
-            isActive={location.pathname === settingsItem.path}
-            onClick={() => navigate(settingsItem.path)}
-          />
-        )}
 
         {/* Divider before utilities */}
         <Divider />

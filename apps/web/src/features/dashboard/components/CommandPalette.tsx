@@ -14,7 +14,6 @@ import {
   Settings,
   Moon,
   Sun,
-  LogOut,
   ArrowRight,
   TrendingUp,
   AlertOctagon,
@@ -40,7 +39,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
   const { setTheme, isDark } = useTheme();
-  const { logout } = useAuth();
+  const { logout: _logout } = useAuth(); // kept for API compat
   const inputRef = useRef<HTMLInputElement>(null);
 
   const commands: CommandItem[] = [
@@ -160,13 +159,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       category: 'Actions',
       icon: isDark ? Sun : Moon,
       action: () => { setTheme(isDark ? 'light' : 'dark'); onClose(); },
-    },
-    {
-      id: 'action-logout',
-      title: 'Sign Out',
-      category: 'Actions',
-      icon: LogOut,
-      action: async () => { onClose(); await logout(); navigate('/login'); },
     },
   ];
 
