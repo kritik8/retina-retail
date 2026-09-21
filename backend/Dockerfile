@@ -28,9 +28,11 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# ── Bake in YOLO model weight (6.2 MB) ──────────────────────────────────────
-# Avoids Ultralytics auto-download on cold starts (Render ephemeral FS loses it)
-COPY yolov8n.pt /app/yolov8n.pt
+# ── Pre-download YOLO model weight during build (not at cold-start) ──────────
+# Ultralytics auto-downloads yolov8n.pt (~6 MB) on first YOLO() call.
+# Running it here bakes it into the image layer so cold starts are instant.
+# The model is cached to ~/.config/ultralytics/ inside the image.
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
 
 # ── Application source ───────────────────────────────────────────────────────
 COPY . .
