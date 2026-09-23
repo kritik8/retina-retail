@@ -2,6 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import stream, telemetry
+from app.perception.video_streamer import get_stream_diagnostics
 
 # Configure logging
 logging.basicConfig(
@@ -30,11 +31,28 @@ app.include_router(telemetry.router)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
+    cameras = get_stream_diagnostics()
+    detector_states = [item["detector"]["detector_state"] for item in cameras.values()]
+    active_states = [state for state in detector_states if state != "not_initialized"]
+    if not active_states:
+        vision_state = "not_initialized"
+    elif any(state == "ready" for state in active_states):
+        vision_state = "ready"
+    elif any(state == "inference_failed" for state in active_states):
+        vision_state = "inference_failed"
+    else:
+        vision_state = "model_load_failed"
+    vision_available = vision_state == "ready" and any(
+        item["camera_state"] == "connected" for item in cameras.values()
+    )
     return {
         "status": "online",
         "service": "RetinaRetail-Vision-Engine",
         "version": "1.0.0",
-        "yolo_enabled": True
+        "yolo_enabled": vision_state == "ready",
+        "vision_state": vision_state,
+        "vision_available": vision_available,
+        "cameras": cameras,
     }
 
 @app.get("/", tags=["Health"])

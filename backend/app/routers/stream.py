@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, FileResponse
 from typing import List, Dict
 from app.config import DEFAULT_CAMERAS, CameraConfig, find_video_path
-from app.perception.video_streamer import get_camera_streamer
+from app.perception.video_streamer import get_camera_streamer, get_stream_diagnostics
 
 router = APIRouter(prefix="/api", tags=["Video Streams"])
 
@@ -10,6 +10,12 @@ router = APIRouter(prefix="/api", tags=["Video Streams"])
 def list_cameras():
     """Returns list of active configured camera vision nodes."""
     return list(DEFAULT_CAMERAS.values())
+
+
+@router.get("/cameras/diagnostics")
+def camera_diagnostics():
+    """Returns non-sensitive camera and detector diagnostics for troubleshooting."""
+    return {"cameras": get_stream_diagnostics()}
 
 @router.get("/video/{camera_id}")
 def get_raw_video(camera_id: str):

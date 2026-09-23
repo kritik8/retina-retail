@@ -30,6 +30,29 @@ def is_point_in_polygon(x: float, y: float, polygon: List[Tuple[float, float]]) 
         p1x, p1y = p2x, p2y
     return inside
 
+# Normalized interior ROIs keyed by camera ID. Coordinates are measured against
+# the resized inference/render frame, where (0, 0) is top-left and (1, 1) is
+# bottom-right.
+#
+# NEEDS CALIBRATION — visually verify these placeholders against representative
+# frames before relying on them in production.
+CAMERA_INTERIOR_ROIS: Dict[str, List[Tuple[float, float]]] = {
+    # Cam 1 has no exterior view; keep the entire visible frame.
+    "cam-1": [
+        (0.001, 0.001),
+        (0.999, 0.001),
+        (0.999, 0.999),
+        (0.001, 0.999),
+    ],
+    # Calibrated diagonal boundary: keep the interior left of the threshold.
+    "cam-3": [
+        (0.00, 0.00),
+        (0.65, 0.00),
+        (0.40, 1.00),
+        (0.00, 1.00),
+    ],
+}
+
 # Pre-defined zone geometries for store layout
 DEFAULT_STORE_ZONES: Dict[str, ZonePolygon] = {
     "z-entrance": ZonePolygon(

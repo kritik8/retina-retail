@@ -100,6 +100,8 @@ class AppSettings(BaseModel):
     yolo_model_name: str = "yolov8n.pt"
     confidence_threshold: float = 0.35
     iou_threshold: float = 0.45
+    yolo_imgsz: int = 384
+    yolo_tracker: str = "bytetrack.yaml"
     track_history_len: int = 30
     stream_fps: int = 15
     enable_gpu: bool = False  # Auto-fallback to CPU
