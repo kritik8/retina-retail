@@ -13,47 +13,12 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { API_BASE_URL, apiClient } from '@/services/api/client';
-import { CAMERA_R2_URL } from '@/config/cameraConfig';
-
-// ─── Camera definitions — named based on actual CCTV footage ─────────────────
-// Footage shows a beauty & cosmetics retail store (The Face Shop, skincare, accessories)
-const CAMERAS = [
-  {
-    id: 'cam-1',
-    name: 'Beauty & Skincare Section',
-    zone: 'Zone A — Skincare & Face Products',
-    description: 'Primary skincare and face product aisle. Tracks dwell time and engagement at product shelves.',
-    position: 'Ceiling mount, aisle mid-point',
-  },
-  {
-    id: 'cam-2',
-    name: 'Main Entrance',
-    zone: 'Zone B — Store Entry',
-    description: 'Store entrance and entry corridor. Captures all incoming footfall.',
-    position: 'Front entrance, overhead',
-  },
-  {
-    id: 'cam-3',
-    name: 'Accessories & Display Wall',
-    zone: 'Zone C — Accessories',
-    description: 'Wall display and accessories section. Monitors browsing and pickup patterns.',
-    position: 'Back wall camera, angled',
-  },
-  {
-    id: 'cam-4',
-    name: 'Checkout Counter',
-    zone: 'Zone D — Billing & Checkout',
-    description: 'Checkout area. Tracks queue depth and billing wait times.',
-    position: 'Ceiling above checkout desk',
-  },
-  {
-    id: 'cam-5',
-    name: 'Fragrance & Gifting Aisle',
-    zone: 'Zone E — Fragrances & Gifts',
-    description: 'Premium fragrance and gift product section. Monitors dwell and conversion.',
-    position: 'Side wall mount, eye-level angle',
-  },
-];
+import {
+  ACTIVE_CAMERAS as CAMERAS,
+  CAMERA_R2_URL,
+  CAMERA_ZONE_INFO,
+  CAMERA_MODE,
+} from '@/config/cameraConfig';
 
 // ─── Fetch real detection count from backend, fall back to zone seed ──────────
 async function fetchZoneCount(cameraId: string): Promise<number | null> {
@@ -145,15 +110,6 @@ const getCameraR2Url = (cameraId: string): string =>
   CAMERA_R2_URL[cameraId] ??
   // Defensive fallback in case a new cam ID is added without updating config
   `https://pub-68d2604e65f74d62b6735ef7a371c82a.r2.dev/CAM%20Videos/${encodeURIComponent('CAM ' + cameraId.replace('cam-', '') + '.mp4')}`;
-
-// ─── Camera Zone Metadata ──────────────────────────────────────────────────
-const CAMERA_ZONE_INFO: Record<string, { zoneName: string; areaType: string }> = {
-  'cam-1': { zoneName: 'Zone A · Skincare & Cosmetics', areaType: 'Display Shelves' },
-  'cam-2': { zoneName: 'Zone B · Store Entry', areaType: 'Threshold & Turnstiles' },
-  'cam-3': { zoneName: 'Zone C · Accessories Wall', areaType: 'Perimeter Racks' },
-  'cam-4': { zoneName: 'Zone D · Checkout Queue', areaType: 'POS Counters 1-4' },
-  'cam-5': { zoneName: 'Zone E · Fragrances & Gifts', areaType: 'Feature Gondola' },
-};
 
 // ─── Real YOLOv8 Track Interfaces ─────────────────────────────────────────────
 interface YoloTrack {
@@ -720,7 +676,8 @@ export const LiveMonitorPage: React.FC = () => {
             Live Monitor
           </h1>
           <p className="font-sans text-xs" style={{ color: 'var(--fg-muted)' }}>
-            {CAMERAS.length} cameras · Click any feed to view zone stats
+            {CAMERAS.length} {CAMERAS.length === 1 ? 'camera' : 'cameras'}
+            {CAMERA_MODE === 'hardware' ? ' (ESP32 AP Stream · 192.168.4.1)' : ''} · Click any feed to view zone stats
           </p>
         </div>
 

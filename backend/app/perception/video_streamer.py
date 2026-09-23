@@ -206,7 +206,10 @@ def get_camera_streamer(camera_id: str) -> CameraStreamer:
     global _streamer_registry
     if camera_id not in _streamer_registry:
         # Dedicated per-camera detector to isolate ByteTrack tracking state and eliminate cross-camera collision
-        cam_detector = YOLODetector(model_name=settings.yolo_model_name)
+        cam_detector = YOLODetector(
+            model_name=settings.yolo_model_name,
+            conf_thresh=settings.confidence_threshold
+        )
         _streamer_registry[camera_id] = CameraStreamer(camera_id, cam_detector)
 
     return _streamer_registry[camera_id]

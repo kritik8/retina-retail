@@ -1,7 +1,7 @@
 import time
 from typing import Dict, List, Optional
 from pydantic import BaseModel
-from app.config import DEFAULT_CAMERAS, CameraConfig
+from app.config import DEFAULT_CAMERAS, CameraConfig, CAMERA_MODE
 from app.perception.zone_geometry import DEFAULT_STORE_ZONES, is_point_in_polygon
 
 class ZoneMetrics(BaseModel):
@@ -37,8 +37,9 @@ class StoreStateManager:
         if not cam_conf:
             return
 
-        # Prune stale tracks (> 3.0s unseen)
-        stale_ids = [t_id for t_id, data in self.active_tracks.items() if now - data["last_seen"] > 3.0]
+        # Prune stale tracks (1.5s in hardware mode to clear ghost tracks fast, 3.0s in demo)
+        stale_limit = 1.5 if CAMERA_MODE == "hardware" else 3.0
+        stale_ids = [t_id for t_id, data in self.active_tracks.items() if now - data["last_seen"] > stale_limit]
         for s_id in stale_ids:
             del self.active_tracks[s_id]
 
@@ -78,10 +79,15 @@ class StoreStateManager:
         self.outflow_events = [t for t in self.outflow_events if now - t <= window]
         self.service_events = [t for t in self.service_events if now - t <= window]
 
-        # Calculate rates per minute (with robust realistic baselines)
-        in_rate = round(max(3.8, len(self.inflow_events) * (60.0 / max(1.0, window))), 1)
-        out_rate = round(max(2.1, len(self.outflow_events) * (60.0 / max(1.0, window))), 1)
-        srv_rate = round(max(2.2, len(self.service_events) * (60.0 / max(1.0, window))), 1)
+        # Calculate rates per minute
+        if CAMERA_MODE == "hardware":
+            in_rate = round(len(self.inflow_events) * (60.0 / max(1.0, window)), 1)
+            out_rate = round(len(self.outflow_events) * (60.0 / max(1.0, window)), 1)
+            srv_rate = round(len(self.service_events) * (60.0 / max(1.0, window)), 1)
+        else:
+            in_rate = round(max(3.8, len(self.inflow_events) * (60.0 / max(1.0, window))), 1)
+            out_rate = round(max(2.1, len(self.outflow_events) * (60.0 / max(1.0, window))), 1)
+            srv_rate = round(max(2.2, len(self.service_events) * (60.0 / max(1.0, window))), 1)
 
         # Count per zone
         zone_counts: Dict[str, List[float]] = {z_id: [] for z_id in DEFAULT_STORE_ZONES}
@@ -96,7 +102,8 @@ class StoreStateManager:
             z_poly = DEFAULT_STORE_ZONES[z_id]
             count = len(dwells)
             avg_dwell = round(sum(dwells) / count if count > 0 else 0.0, 1)
-            density_pct = min(100, int((count / 12.0) * 100))
+            capacity = 5.0 if CAMERA_MODE == "hardware" else 12.0
+            density_pct = min(100, int((count / capacity) * 100))
 
             zones_data[z_id] = ZoneMetrics(
                 zone_id=z_id,
@@ -107,9 +114,14 @@ class StoreStateManager:
                 avg_dwell_seconds=avg_dwell
             )
 
-        total_occ = max(18, len(self.active_tracks))
-        queue_len = max(8, len(zone_counts.get("z-checkout", [])))
-        overall_density = min(92, int((total_occ / 40.0) * 100))
+        if CAMERA_MODE == "hardware":
+            total_occ = len(self.active_tracks)
+            queue_len = len(zone_counts.get("z-checkout", []))
+            overall_density = min(100, int((total_occ / 10.0) * 100))
+        else:
+            total_occ = max(18, len(self.active_tracks))
+            queue_len = max(8, len(zone_counts.get("z-checkout", [])))
+            overall_density = min(92, int((total_occ / 40.0) * 100))
 
         return LiveStoreState(
             timestamp=now,

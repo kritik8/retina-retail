@@ -24,6 +24,17 @@ CCTV_DIRS = [
     Path("/data/footage"),     # common Render persistent disk mount
 ]
 
+# Camera Mode: "demo" (5 R2/CCTV video sources) or "hardware" (1 live ESP32-CAM stream)
+CAMERA_MODE = (os.getenv("CAMERA_MODE") or os.getenv("VITE_CAMERA_MODE", "demo")).lower().strip()
+
+# Default ESP32 IP from environment (e.g. ESP32_CAM_IP="192.168.4.1" or ESP32_STREAM_URL)
+ESP32_CAM_IP = os.getenv("ESP32_CAM_IP", "192.168.4.1" if CAMERA_MODE == "hardware" else "")
+ESP32_DEFAULT_URL = (
+    f"http://{ESP32_CAM_IP}:81/stream"
+    if ESP32_CAM_IP
+    else os.getenv("ESP32_STREAM_URL", "http://192.168.4.1:81/stream" if CAMERA_MODE == "hardware" else "")
+)
+
 class CameraConfig(BaseModel):
     id: str
     name: str
@@ -34,73 +45,86 @@ class CameraConfig(BaseModel):
     resolution: str = "1080p"
     tripwire_y: float = 0.55  # normalized horizontal gate for inflow/outflow crossing
     source_type: str = "file"  # "file" | "esp32" | "rtsp"
-    stream_url: Optional[str] = None  # e.g. "http://192.168.1.100:81/stream" or "rtsp://..."
+    stream_url: Optional[str] = None  # e.g. "http://192.168.4.1:81/stream" or "rtsp://..."
 
-# Default ESP32 IP from environment (e.g. ESP32_CAM_IP="192.168.1.50" or ESP32_STREAM_URL)
-ESP32_CAM_IP = os.getenv("ESP32_CAM_IP", "")
-ESP32_DEFAULT_URL = f"http://{ESP32_CAM_IP}:81/stream" if ESP32_CAM_IP else os.getenv("ESP32_STREAM_URL", "")
-
-# Default 5-camera CCTV mapping matching physical Kirana layout
-DEFAULT_CAMERAS: Dict[str, CameraConfig] = {
-    "cam-1": CameraConfig(
-        id="cam-1",
-        name="Entrance & Pedestrian Gate (Cam 1)",
-        video_filename="CAM 1.mp4",
-        zone_id="z-entrance",
-        zone_type="entrance",
-        tripwire_y=0.60,
-        source_type="esp32" if (ESP32_DEFAULT_URL or os.getenv("CAM_1_STREAM_URL")) else "file",
-        stream_url=os.getenv("CAM_1_STREAM_URL", ESP32_DEFAULT_URL or None)
-    ),
-    "cam-2": CameraConfig(
-        id="cam-2",
-        name="Aisle 1 - Grains & Staples (Cam 2)",
-        video_filename="CAM 2.mp4",
-        zone_id="z-aisle-1",
-        zone_type="aisle",
-        tripwire_y=0.50,
-        source_type="esp32" if os.getenv("CAM_2_STREAM_URL") else "file",
-        stream_url=os.getenv("CAM_2_STREAM_URL")
-    ),
-    "cam-3": CameraConfig(
-        id="cam-3",
-        name="Aisle 2 - Snacks & FMCG (Cam 3)",
-        video_filename="CAM 3.mp4",
-        zone_id="z-aisle-2",
-        zone_type="aisle",
-        tripwire_y=0.50,
-        source_type="esp32" if os.getenv("CAM_3_STREAM_URL") else "file",
-        stream_url=os.getenv("CAM_3_STREAM_URL")
-    ),
-    "cam-4": CameraConfig(
-        id="cam-4",
-        name="Promo & Perimeter Zone (Cam 4)",
-        video_filename="CAM 4.mp4",
-        zone_id="z-promo",
-        zone_type="general",
-        tripwire_y=0.50,
-        source_type="esp32" if os.getenv("CAM_4_STREAM_URL") else "file",
-        stream_url=os.getenv("CAM_4_STREAM_URL")
-    ),
-    "cam-5": CameraConfig(
-        id="cam-5",
-        name="Main POS Checkout Queue (Cam 5)",
-        video_filename="CAM 5.mp4",
-        zone_id="z-checkout",
-        zone_type="checkout",
-        tripwire_y=0.45,
-        source_type="esp32" if os.getenv("CAM_5_STREAM_URL") else "file",
-        stream_url=os.getenv("CAM_5_STREAM_URL")
-    ),
-}
+if CAMERA_MODE == "hardware":
+    # Single-camera hardware mode: Stream live from the ESP32-CAM module
+    DEFAULT_CAMERAS: Dict[str, CameraConfig] = {
+        "cam-1": CameraConfig(
+            id="cam-1",
+            name="CAM-1 · Live Hardware Feed",
+            video_filename="CAM 1.mp4",
+            zone_id="z-entrance",
+            zone_type="entrance",
+            tripwire_y=0.55,
+            source_type="esp32",
+            stream_url=ESP32_DEFAULT_URL or "http://192.168.4.1:81/stream"
+        )
+    }
+else:
+    # Default 5-camera CCTV mapping matching physical Kirana/Retail layout
+    DEFAULT_CAMERAS: Dict[str, CameraConfig] = {
+        "cam-1": CameraConfig(
+            id="cam-1",
+            name="Entrance & Pedestrian Gate (Cam 1)",
+            video_filename="CAM 1.mp4",
+            zone_id="z-entrance",
+            zone_type="entrance",
+            tripwire_y=0.60,
+            source_type="esp32" if (ESP32_DEFAULT_URL or os.getenv("CAM_1_STREAM_URL")) else "file",
+            stream_url=os.getenv("CAM_1_STREAM_URL", ESP32_DEFAULT_URL or None)
+        ),
+        "cam-2": CameraConfig(
+            id="cam-2",
+            name="Aisle 1 - Grains & Staples (Cam 2)",
+            video_filename="CAM 2.mp4",
+            zone_id="z-aisle-1",
+            zone_type="aisle",
+            tripwire_y=0.50,
+            source_type="esp32" if os.getenv("CAM_2_STREAM_URL") else "file",
+            stream_url=os.getenv("CAM_2_STREAM_URL")
+        ),
+        "cam-3": CameraConfig(
+            id="cam-3",
+            name="Aisle 2 - Snacks & FMCG (Cam 3)",
+            video_filename="CAM 3.mp4",
+            zone_id="z-aisle-2",
+            zone_type="aisle",
+            tripwire_y=0.50,
+            source_type="esp32" if os.getenv("CAM_3_STREAM_URL") else "file",
+            stream_url=os.getenv("CAM_3_STREAM_URL")
+        ),
+        "cam-4": CameraConfig(
+            id="cam-4",
+            name="Promo & Perimeter Zone (Cam 4)",
+            video_filename="CAM 4.mp4",
+            zone_id="z-promo",
+            zone_type="general",
+            tripwire_y=0.50,
+            source_type="esp32" if os.getenv("CAM_4_STREAM_URL") else "file",
+            stream_url=os.getenv("CAM_4_STREAM_URL")
+        ),
+        "cam-5": CameraConfig(
+            id="cam-5",
+            name="Main POS Checkout Queue (Cam 5)",
+            video_filename="CAM 5.mp4",
+            zone_id="z-checkout",
+            zone_type="checkout",
+            tripwire_y=0.45,
+            source_type="esp32" if os.getenv("CAM_5_STREAM_URL") else "file",
+            stream_url=os.getenv("CAM_5_STREAM_URL")
+        ),
+    }
 
 class AppSettings(BaseModel):
     host: str = "0.0.0.0"
     port: int = 8000
+    camera_mode: str = CAMERA_MODE
     yolo_model_name: str = "yolov8n.pt"
-    confidence_threshold: float = 0.35
+    # In hardware mode, use conf=0.45 to prevent ghost tracks on noisy footage
+    confidence_threshold: float = 0.45 if CAMERA_MODE == "hardware" else 0.35
     iou_threshold: float = 0.45
-    track_history_len: int = 30
+    track_history_len: int = 15 if CAMERA_MODE == "hardware" else 30
     stream_fps: int = 15
     enable_gpu: bool = False  # Auto-fallback to CPU
 
