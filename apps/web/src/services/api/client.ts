@@ -6,8 +6,8 @@ import type {
   SimulationResult,
 } from '@/types';
 
-export const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE_URL: string =
+  import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 class RetinaApiClient {
   private isOnlineCache: boolean | null = null;

@@ -695,7 +695,7 @@ export const LiveMonitorPage: React.FC = () => {
   useEffect(() => {
     const fetchTotal = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/telemetry/live', {
+        const res = await fetch(`${API_BASE_URL}/api/telemetry/live`, {
           signal: AbortSignal.timeout(1500),
         });
         if (res.ok) {
