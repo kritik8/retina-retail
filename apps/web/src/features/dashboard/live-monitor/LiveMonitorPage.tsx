@@ -10,8 +10,10 @@ import {
   Activity,
   Wifi,
   Maximize2,
+  RefreshCw,
 } from 'lucide-react';
 import { API_BASE_URL, apiClient } from '@/services/api/client';
+import { CAMERA_R2_URL } from '@/config/cameraConfig';
 
 // ─── Camera definitions — named based on actual CCTV footage ─────────────────
 // Footage shows a beauty & cosmetics retail store (The Face Shop, skincare, accessories)
@@ -135,29 +137,14 @@ const StatBar: React.FC<{ value: number; color: string }> = ({ value, color }) =
   </div>
 );
 
-// ─── Camera video sources — backend streams raw MP4 for deployed frontend ───
-const CAMERA_SOURCES: Record<string, { rawUrl: string; fallbackUrl: string }> = {
-  'cam-1': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-1`,
-    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-walking-in-a-shopping-mall-4813-large.mp4',
-  },
-  'cam-2': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-2`,
-    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-shopping-in-a-grocery-store-4814-large.mp4',
-  },
-  'cam-3': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-3`,
-    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-customers-in-a-supermarket-4816-large.mp4',
-  },
-  'cam-4': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-4`,
-    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cashier-scanning-items-at-checkout-4817-large.mp4',
-  },
-  'cam-5': {
-    rawUrl: `${API_BASE_URL}/api/video/cam-5`,
-    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-people-in-a-clothing-store-4815-large.mp4',
-  },
-};
+// ─── Camera video sources — Cloudflare R2 hosted MP4s ───────────────────────
+// Primary: R2 public URL (percent-encoded, CORS-enabled bucket).
+// Backend MJPEG stream is used only when the local Python backend is running.
+// To update URLs, edit src/config/cameraConfig.ts — do NOT hard-code here.
+const getCameraR2Url = (cameraId: string): string =>
+  CAMERA_R2_URL[cameraId] ??
+  // Defensive fallback in case a new cam ID is added without updating config
+  `https://pub-68d2604e65f74d62b6735ef7a371c82a.r2.dev/CAM%20Videos/${encodeURIComponent('CAM ' + cameraId.replace('cam-', '') + '.mp4')}`;
 
 // ─── Camera Zone Metadata ──────────────────────────────────────────────────
 const CAMERA_ZONE_INFO: Record<string, { zoneName: string; areaType: string }> = {
@@ -249,31 +236,77 @@ const YoloBoxOverlay: React.FC<{ tracks: YoloTrack[] }> = ({ tracks }) => {
   );
 };
 
+// ─── Video error/retry UI ─────────────────────────────────────────────────────
+const VideoErrorCard: React.FC<{ cameraId: string; onRetry: () => void }> = ({ cameraId, onRetry }) => (
+  <div
+    className="absolute inset-0 flex flex-col items-center justify-center gap-3"
+    style={{ background: 'rgba(10,10,12,0.92)' }}
+  >
+    <div
+      className="p-3 rounded-full"
+      style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
+    >
+      <Camera className="w-5 h-5" style={{ color: '#ef4444' }} />
+    </div>
+    <div className="text-center space-y-0.5 px-4">
+      <p className="font-mono text-[11px] font-semibold" style={{ color: '#ef4444' }}>
+        Feed unavailable
+      </p>
+      <p className="font-mono text-[9px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        {cameraId.toUpperCase()} · R2 stream error
+      </p>
+    </div>
+    <button
+      onClick={onRetry}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[9px] font-mono font-medium transition-colors"
+      style={{
+        background: 'rgba(255,255,255,0.08)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        color: '#EDEDE9',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.14)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+    >
+      <RefreshCw className="w-3 h-3" />
+      Retry
+    </button>
+  </div>
+);
+
 // ─── Universal Camera Video Player with Live Vision HUD ──────────────────────
 const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
-  const source = CAMERA_SOURCES[cameraId] || CAMERA_SOURCES['cam-1'];
   const info = CAMERA_ZONE_INFO[cameraId] || CAMERA_ZONE_INFO['cam-1'];
-  // Auto-enable YOLO MJPEG stream — judges see real-time detections immediately
+
+  // Auto-enable YOLO MJPEG stream if the local Python backend is running
   const [useYoloStream, setUseYoloStream] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(false);
-  const [videoSrc, setVideoSrc] = useState(source.rawUrl);
+
+  // Primary video source: Cloudflare R2 (hosted, always-on)
+  const r2VideoUrl = getCameraR2Url(cameraId);
+  const [videoError, setVideoError] = useState(false);
+  const [videoKey, setVideoKey] = useState(0); // bump to force <video> remount on retry
+
   const [trackData, setTrackData] = useState<YoloTrackData | null>(null);
   const [activeTracks, setActiveTracks] = useState<YoloTrack[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Check backend health on mount — start YOLO stream if available
+  // Check backend health on mount — use YOLO stream only when backend is live
   useEffect(() => {
     let active = true;
     apiClient.checkHealth().then((isOnline) => {
       if (active) {
         setBackendAvailable(isOnline);
-        // If backend is offline, fall back to video+local track overlay
+        // Backend offline → fall back to R2 video + local track overlay
         if (!isOnline) setUseYoloStream(false);
       }
     });
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
+  }, [cameraId]);
+
+  // Reset error state when cameraId changes
+  useEffect(() => {
+    setVideoError(false);
+    setVideoKey((k) => k + 1);
   }, [cameraId]);
 
   // Load real YOLOv8 detection tracks generated from actual footage
@@ -288,10 +321,7 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
         }
       })
       .catch(() => {});
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [cameraId]);
 
   // Frame-by-frame synchronization of real YOLO detections with video playback
@@ -303,22 +333,17 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
     const frames = trackData.frames;
     let closest = frames[0];
     let minDiff = Math.abs(frames[0].t - currentTime);
-
     for (let i = 1; i < frames.length; i++) {
       const diff = Math.abs(frames[i].t - currentTime);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = frames[i];
-      }
+      if (diff < minDiff) { minDiff = diff; closest = frames[i]; }
     }
-
     setActiveTracks(closest.tracks || []);
   }, [trackData]);
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden select-none group">
       {useYoloStream ? (
-        /* Real-time YOLOv8 + ByteTrack server-baked video stream */
+        /* Real-time YOLOv8 + ByteTrack server-baked MJPEG stream (local backend only) */
         <div className="relative w-full h-full">
           <img
             src={`${API_BASE_URL}/api/stream/${cameraId}`}
@@ -326,7 +351,6 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
             className="w-full h-full object-cover"
             onError={() => setUseYoloStream(false)}
           />
-          {/* Active YOLO Neural Perception Badge */}
           <div
             className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[9px] font-semibold tracking-wide backdrop-blur-md z-10 pointer-events-none"
             style={{ background: 'rgba(10,10,12,0.88)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.4)' }}
@@ -336,37 +360,43 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
           </div>
         </div>
       ) : (
-        /* High-Definition Optical Video Feed with Real Synchronized YOLOv8 Detections */
+        /* Cloudflare R2 hosted video feed + real synchronized YOLOv8 detections */
         <div className="relative w-full h-full">
-          <video
-            ref={videoRef}
-            src={videoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            crossOrigin="anonymous"
-            preload="auto"
-            className="w-full h-full object-cover"
-            onTimeUpdate={syncTracks}
-            onError={() => {
-              if (videoSrc !== source.fallbackUrl) {
-                setVideoSrc(source.fallbackUrl);
-              }
-            }}
-          />
+          {videoError ? (
+            <VideoErrorCard
+              cameraId={cameraId}
+              onRetry={() => { setVideoError(false); setVideoKey((k) => k + 1); }}
+            />
+          ) : (
+            <video
+              key={videoKey}
+              ref={videoRef}
+              src={r2VideoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              crossOrigin="anonymous"
+              preload="auto"
+              className="w-full h-full object-cover"
+              onTimeUpdate={syncTracks}
+              onError={() => setVideoError(true)}
+            />
+          )}
 
           {/* Real YOLOv8 Emerald Green & Butter Yellow Bounding Frames */}
-          <YoloBoxOverlay tracks={activeTracks} />
+          {!videoError && <YoloBoxOverlay tracks={activeTracks} />}
 
           {/* Top-Right Optical Status HUD */}
-          <div
-            className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[9px] font-semibold tracking-wide backdrop-blur-md z-10 pointer-events-none"
-            style={{ background: 'rgba(10,10,12,0.85)', color: '#EDEDE9', border: '1px solid rgba(255,255,255,0.15)' }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-400" />
-            YOLOv8 NEURAL DETECTIONS
-          </div>
+          {!videoError && (
+            <div
+              className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[9px] font-semibold tracking-wide backdrop-blur-md z-10 pointer-events-none"
+              style={{ background: 'rgba(10,10,12,0.85)', color: '#EDEDE9', border: '1px solid rgba(255,255,255,0.15)' }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-400" />
+              YOLOv8 NEURAL DETECTIONS
+            </div>
+          )}
         </div>
       )}
 
@@ -378,7 +408,7 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
         {info.zoneName}
       </div>
 
-      {/* Stream Mode Switcher / Reconnect Control (Hover overlay) */}
+      {/* Stream Mode Switcher / Reconnect Control (hover overlay) */}
       <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {backendAvailable ? (
           <button
