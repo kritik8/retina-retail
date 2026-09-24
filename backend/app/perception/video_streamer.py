@@ -176,7 +176,11 @@ class CameraStreamer:
             # Run YOLO + ByteTrack every 2nd frame for low latency, reusing cache on intermediate frames
             if not self._last_frame_is_live:
                 self.cached_tracks = []
-                store_state_manager.update_camera_tracks(self.camera_id, [])
+                store_state_manager.update_camera_tracks(
+                    self.camera_id,
+                    [],
+                    frame_size=self.last_inference_frame_size,
+                )
             elif self.frame_idx % 2 == 1 or len(self.cached_tracks) == 0:
                 detected_tracks = self.detector.track_frame(frame)
                 self.cached_tracks = self._filter_tracks_to_interior(
@@ -186,7 +190,11 @@ class CameraStreamer:
                 )
                 # Update live telemetry manager with active tracklets
                 track_dicts = [t.model_dump() for t in self.cached_tracks]
-                store_state_manager.update_camera_tracks(self.camera_id, track_dicts)
+                store_state_manager.update_camera_tracks(
+                    self.camera_id,
+                    track_dicts,
+                    frame_size=self.last_inference_frame_size,
+                )
 
             tracks = self.cached_tracks
 

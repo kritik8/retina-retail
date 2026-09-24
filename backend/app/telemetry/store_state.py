@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List
 from pydantic import BaseModel
 from app.config import DEFAULT_CAMERAS, CameraConfig
 from app.perception.zone_geometry import DEFAULT_STORE_ZONES, is_point_in_polygon
@@ -31,11 +31,22 @@ class StoreStateManager:
         self.outflow_events: List[float] = []     # Timestamps of outflow events
         self.service_events: List[float] = []     # Timestamps of checkout completions
 
-    def update_camera_tracks(self, camera_id: str, tracks: List[Dict]):
+    def update_camera_tracks(
+        self,
+        camera_id: str,
+        tracks: List[Dict],
+        frame_size: Dict[str, int],
+    ):
         now = time.time()
         cam_conf = DEFAULT_CAMERAS.get(camera_id)
         if not cam_conf:
             return
+        frame_width = frame_size.get("width")
+        frame_height = frame_size.get("height")
+        if not frame_width or not frame_height:
+            raise ValueError(
+                f"Invalid inference frame size for {camera_id}: {frame_size}"
+            )
 
         # Prune stale tracks (> 3.0s unseen)
         stale_ids = [t_id for t_id, data in self.active_tracks.items() if now - data["last_seen"] > 3.0]
@@ -45,12 +56,19 @@ class StoreStateManager:
         for t in tracks:
             track_id = t.get("track_id")
             centroid = t.get("centroid", [0, 0])
-            norm_x = centroid[0] / 1920.0
-            norm_y = centroid[1] / 1080.0
+            norm_x = centroid[0] / frame_width
+            norm_y = centroid[1] / frame_height
 
             # Determine matching zone
             matched_zone_id = cam_conf.zone_id
-            for z_id, z_poly in DEFAULT_STORE_ZONES.items():
+            zone_items = DEFAULT_STORE_ZONES.items()
+            if camera_id == "cam-5":
+                checkout_zone = DEFAULT_STORE_ZONES["z-checkout"]
+                if is_point_in_polygon(norm_x, norm_y, checkout_zone.polygon):
+                    matched_zone_id = "z-checkout"
+                    zone_items = ()
+
+            for z_id, z_poly in zone_items:
                 if is_point_in_polygon(norm_x, norm_y, z_poly.polygon):
                     matched_zone_id = z_id
                     break

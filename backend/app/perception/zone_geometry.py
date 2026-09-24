@@ -44,10 +44,26 @@ CAMERA_INTERIOR_ROIS: Dict[str, List[Tuple[float, float]]] = {
         (0.999, 0.999),
         (0.001, 0.999),
     ],
+    "cam-2": [
+        (0.00, 0.00),
+        (1.00, 0.00),
+        (1.00, 1.00),
+        (0.00, 1.00),
+    ],
     # Calibrated diagonal boundary: keep the interior left of the threshold.
     "cam-3": [
         (0.00, 0.00),
         (0.65, 0.00),
+        (0.40, 1.00),
+        (0.00, 1.00),
+    ],
+    # Cam 4 is staff/storage only; a degenerate ROI excludes all foot points.
+    "cam-4": [
+        (0.00, 0.00),
+    ],
+    "cam-5": [
+        (0.00, 0.00),
+        (0.40, 0.00),
         (0.40, 1.00),
         (0.00, 1.00),
     ],
@@ -80,7 +96,7 @@ DEFAULT_STORE_ZONES: Dict[str, ZonePolygon] = {
         id="z-checkout",
         name="Main POS Checkout Area",
         zone_type="checkout",
-        polygon=[(0.15, 0.35), (0.85, 0.35), (0.85, 0.95), (0.15, 0.95)],
+        polygon=[(0.00, 0.00), (0.40, 0.00), (0.40, 1.00), (0.00, 1.00)],
         color_bgr=(72, 72, 158)  # Rose/Red for queue zone
     ),
 }
