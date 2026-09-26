@@ -95,33 +95,17 @@ class YOLODetector:
             except Exception as e:
                 logger.debug(f"YOLO inference step warning: {e}")
 
-        # Fallback person detection using HOG / OpenCV if YOLO is unavailable
+        # No real detections available — return empty (no fake synthetic tracks)
         return self._fallback_detect(frame, now)
 
     def _fallback_detect(self, frame: np.ndarray, now: float) -> List[TrackedPerson]:
-        h, w = frame.shape[:2]
-        # Generate stable simulated tracks based on optical frame intensity
-        tracked = []
-        # Sample 3-8 bounding boxes
-        step = (int(now * 2) % 4) + 3
-        for i in range(step):
-            t_id = 100 + i
-            base_x = (0.2 + (i * 0.15)) * w
-            base_y = (0.35 + (0.05 * math.sin(now + i))) * h
-            bw, bh = 0.08 * w, 0.22 * h
-            cx, cy = base_x + bw / 2, base_y + bh / 2
-
-            if t_id not in self.track_first_seen:
-                self.track_first_seen[t_id] = now
-            dwell = now - self.track_first_seen[t_id]
-
-            tracked.append(TrackedPerson(
-                track_id=t_id,
-                bbox=[base_x, base_y, base_x + bw, base_y + bh],
-                confidence=0.89,
-                centroid=[cx, cy],
-                dwell_seconds=round(dwell, 1)
-            ))
-        return tracked
+        """
+        Returns an empty list.
+        The old sin-wave mathematical fake bounding boxes have been removed.
+        When YOLO is unavailable or the stream has no frame, we show nothing
+        rather than misleading synthetic detections.
+        """
+        return []
 
 import math
+

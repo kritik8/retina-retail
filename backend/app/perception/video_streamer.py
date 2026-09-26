@@ -34,7 +34,28 @@ class CameraStreamer:
     def _init_capture(self):
         if self.config.stream_url:
             logger.info(f"Opening live network/ESP32 stream for {self.camera_id} from {self.config.stream_url}")
-            self.cap = cv2.VideoCapture(self.config.stream_url)
+            # Use CAP_FFMPEG explicitly for ESP32 MJPEG over HTTP — plain cv2.VideoCapture(url)
+            # often silently fails on Windows because OpenCV defaults to GStreamer or DirectShow
+            # which don't handle multipart/x-mixed-replace HTTP streams.
+            cap = cv2.VideoCapture(self.config.stream_url, cv2.CAP_FFMPEG)
+            if cap.isOpened():
+                logger.info(f"ESP32 stream opened via CAP_FFMPEG for {self.camera_id}")
+                self.cap = cap
+            else:
+                cap.release()
+                # Fallback: try default backend
+                logger.warning(f"CAP_FFMPEG failed for {self.camera_id}, trying default backend...")
+                cap2 = cv2.VideoCapture(self.config.stream_url)
+                if cap2.isOpened():
+                    logger.info(f"ESP32 stream opened via default backend for {self.camera_id}")
+                    self.cap = cap2
+                else:
+                    cap2.release()
+                    logger.error(f"Could NOT open ESP32 stream {self.config.stream_url} — check that:\n"
+                                 f"  1. Laptop is on the same WiFi/AP as the ESP32\n"
+                                 f"  2. No other client (browser tab) is holding the single-connection slot\n"
+                                 f"  3. The ESP32 stream URL is correct")
+                    self.cap = None
         elif self.video_path and self.video_path.exists():
             logger.info(f"Opening CCTV stream for {self.camera_id} from {self.video_path}")
             self.cap = cv2.VideoCapture(str(self.video_path))

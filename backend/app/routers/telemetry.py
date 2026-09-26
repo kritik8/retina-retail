@@ -2,6 +2,7 @@ from fastapi import APIRouter, Query, Body
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from app.telemetry.store_state import store_state_manager, LiveStoreState
+from app.config import DEFAULT_CAMERAS, CAMERA_MODE
 from app.telemetry.forecaster import (
     generate_prediction,
     generate_diagnosis,
@@ -54,3 +55,30 @@ def log_action(payload: ActionLogPayload):
         "action": payload.action,
         "message": "Action logged successfully. Human-in-the-loop record updated."
     }
+
+@router.get("/stream/status")
+def get_stream_status():
+    """Diagnostic: shows ESP32/camera connection status for each configured camera."""
+    from app.perception.video_streamer import _streamer_registry
+    status = {}
+    for cam_id, cam_conf in DEFAULT_CAMERAS.items():
+        streamer = _streamer_registry.get(cam_id)
+        if streamer is None:
+            status[cam_id] = {
+                "registered": False,
+                "stream_url": cam_conf.stream_url,
+                "source_type": cam_conf.source_type,
+                "note": "Streamer not yet requested (no client has hit /api/stream/{cam_id})"
+            }
+        else:
+            cap_opened = streamer.cap is not None and streamer.cap.isOpened()
+            status[cam_id] = {
+                "registered": True,
+                "cap_opened": cap_opened,
+                "stream_url": cam_conf.stream_url,
+                "source_type": cam_conf.source_type,
+                "frame_idx": streamer.frame_idx,
+                "note": "Receiving live frames" if cap_opened else "cap.isOpened() == False → serving synthetic fallback frame"
+            }
+    return {"camera_mode": CAMERA_MODE, "cameras": status}
+
