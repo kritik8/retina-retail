@@ -236,6 +236,8 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
   // Auto-enable YOLO MJPEG stream if the local Python backend is running
   const [useYoloStream, setUseYoloStream] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(false);
+  const [streamError, setStreamError] = useState(false);
+  const [streamRetryKey, setStreamRetryKey] = useState(0);
 
   // Primary video source: Cloudflare R2 (hosted, always-on)
   const r2VideoUrl = getCameraR2Url(cameraId);
@@ -246,27 +248,40 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
   const [activeTracks, setActiveTracks] = useState<YoloTrack[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Check backend health on mount — use YOLO stream only when backend is live
+  // Check backend health on mount and periodically
   useEffect(() => {
     let active = true;
-    apiClient.checkHealth().then((isOnline) => {
-      if (active) {
-        setBackendAvailable(isOnline);
-        // Backend offline → fall back to R2 video + local track overlay
-        if (!isOnline) setUseYoloStream(false);
-      }
-    });
-    return () => { active = false; };
+    const check = () => {
+      apiClient.checkHealth().then((isOnline) => {
+        if (active) {
+          setBackendAvailable(isOnline);
+          if (CAMERA_MODE === 'hardware') {
+            setUseYoloStream(true);
+          } else if (!isOnline) {
+            setUseYoloStream(false);
+          }
+        }
+      });
+    };
+
+    check();
+    const timer = setInterval(check, 4000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, [cameraId]);
 
-  // Reset error state when cameraId changes
+  // Reset error state when cameraId or retry key changes
   useEffect(() => {
     setVideoError(false);
+    setStreamError(false);
     setVideoKey((k) => k + 1);
-  }, [cameraId]);
+  }, [cameraId, streamRetryKey]);
 
   // Load real YOLOv8 detection tracks generated from actual footage
   useEffect(() => {
+    if (CAMERA_MODE === 'hardware') return;
     let isMounted = true;
     fetch(`/yolo-tracks/${cameraId}.json`)
       .then((r) => (r.ok ? r.json() : null))
@@ -298,21 +313,49 @@ const CameraVideoPlayer: React.FC<{ cameraId: string }> = ({ cameraId }) => {
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden select-none group">
-      {useYoloStream ? (
-        /* Real-time YOLOv8 + ByteTrack server-baked MJPEG stream (local backend only) */
-        <div className="relative w-full h-full">
-          <img
-            src={`${API_BASE_URL}/api/stream/${cameraId}`}
-            alt="Live YOLOv8 Detection Stream"
-            className="w-full h-full object-cover"
-            onError={() => setUseYoloStream(false)}
-          />
+      {useYoloStream || CAMERA_MODE === 'hardware' ? (
+        /* Real-time YOLOv8 + ByteTrack server-baked MJPEG stream (local backend) */
+        <div className="relative w-full h-full bg-black flex items-center justify-center">
+          {streamError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center bg-zinc-950/90 z-20">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <p className="font-mono text-xs font-semibold text-zinc-200">
+                Waiting for Live Feed ({cameraId.toUpperCase()})
+              </p>
+              <p className="font-sans text-[10px] text-zinc-400 max-w-xs leading-relaxed">
+                Ensure backend is running (<code>python run.py</code>) and any raw browser tabs at <code>192.168.4.1:81/stream</code> are closed.
+              </p>
+              <button
+                onClick={() => {
+                  setStreamError(false);
+                  setStreamRetryKey((k) => k + 1);
+                }}
+                className="mt-1 px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-mono text-[10px] border border-white/20 transition-colors cursor-pointer"
+              >
+                Retry Stream
+              </button>
+            </div>
+          ) : (
+            <img
+              key={`stream-${cameraId}-${streamRetryKey}`}
+              src={`${API_BASE_URL}/api/stream/${cameraId}?t=${streamRetryKey}`}
+              alt="Live YOLOv8 Detection Stream"
+              className="w-full h-full object-cover"
+              onError={() => {
+                if (CAMERA_MODE === 'hardware') {
+                  setStreamError(true);
+                } else {
+                  setUseYoloStream(false);
+                }
+              }}
+            />
+          )}
           <div
             className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[9px] font-semibold tracking-wide backdrop-blur-md z-10 pointer-events-none"
             style={{ background: 'rgba(10,10,12,0.88)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.4)' }}
           >
             <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-400" />
-            YOLOv8 Live MJPEG
+            {CAMERA_MODE === 'hardware' ? 'ESP32 Live + YOLOv8' : 'YOLOv8 Live MJPEG'}
           </div>
         </div>
       ) : (
